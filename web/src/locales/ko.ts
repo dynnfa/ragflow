@@ -471,7 +471,7 @@ export default {
       testSetting: '설정',
       retrievalTesting: '검색 테스트',
       retrievalTestingDescription:
-        'RAGFlow가 LLM에 전달하고자 하는 내용을 정확히 가져올 수 있는지 확인하는 검색 테스트를 실행하세요.',
+        'KRAG가 LLM에 전달하고자 하는 내용을 정확히 가져올 수 있는지 확인하는 검색 테스트를 실행하세요.',
       Parse: '파싱',
       dataset: '데이터셋',
       testing: '검색 테스트',
@@ -496,7 +496,7 @@ export default {
       action: '작업',
       parsingStatus: '파싱 상태',
       parsingStatusTip:
-        '문서 파싱 시간은 여러 요소에 따라 달라집니다. 지식 그래프, RAPTOR, 자동 질문 추출, 자동 키워드 추출 등의 기능을 활성화하면 처리 시간이 크게 늘어납니다. 진행 표시줄이 멈추면 다음 FAQ를 참고하세요: https://ragflow.io/docs/dev/faq#why-does-my-document-parsing-stall-at-under-one-percent.',
+ '문서 파싱 시간은 여러 요소에 따라 달라집니다. 지식 그래프, RAPTOR, 자동 질문 추출, 자동 키워드 추출 등의 기능을 활성화하면 처리 시간이 크게 늘어납니다.',
       processBeginAt: '시작 시간',
       processDuration: '소요 시간',
       progressMsg: '진행 상황',
@@ -505,10 +505,10 @@ export default {
       noTestResultsForNotRuned:
         '아직 테스트가 실행되지 않았습니다. 결과가 여기에 표시됩니다.',
       testingDescription:
-        'RAGFlow가 LLM에 전달하고자 하는 내용을 정확히 가져올 수 있는지 확인하는 검색 테스트를 실행하세요. 키워드 유사도 가중치나 유사도 임계값 등 기본 설정을 조정하여 최적의 결과를 얻었다면, 해당 변경 사항은 자동으로 저장되지 않으므로 채팅 어시스턴트 설정 또는 검색 에이전트 컴포넌트 설정에 적용해야 합니다.',
+        'KRAG가 LLM에 전달하고자 하는 내용을 정확히 가져올 수 있는지 확인하는 검색 테스트를 실행하세요. 키워드 유사도 가중치나 유사도 임계값 등 기본 설정을 조정하여 최적의 결과를 얻었다면, 해당 변경 사항은 자동으로 저장되지 않으므로 채팅 어시스턴트 설정 또는 검색 에이전트 컴포넌트 설정에 적용해야 합니다.',
       similarityThreshold: '유사도 임계값',
       similarityThresholdTip:
-        'RAGFlow는 검색 시 가중 키워드 유사도와 가중 벡터 코사인 유사도의 조합을 사용하거나, 리랭커 모델이 선택된 경우 가중 키워드 유사도와 가중 리랭킹 점수의 조합을 사용합니다. 이 매개변수는 사용자 쿼리와 청크 간의 유사도 임계값을 설정합니다. 유사도 점수가 이 임계값보다 낮은 청크는 결과에서 제외됩니다. 기본 임계값은 20입니다. 즉, 하이브리드 유사도 점수가 20 이상인 청크만 검색됩니다. 벡터 유사도 가중치가 0으로 설정된 경우 이 임계값은 적용되지 않습니다.',
+        'KRAG는 검색 시 가중 키워드 유사도와 가중 벡터 코사인 유사도의 조합을 사용하거나, 리랭커 모델이 선택된 경우 가중 키워드 유사도와 가중 리랭킹 점수의 조합을 사용합니다. 이 매개변수는 사용자 쿼리와 청크 간의 유사도 임계값을 설정합니다. 유사도 점수가 이 임계값보다 낮은 청크는 결과에서 제외됩니다. 기본 임계값은 20입니다. 즉, 하이브리드 유사도 점수가 20 이상인 청크만 검색됩니다. 벡터 유사도 가중치가 0으로 설정된 경우 이 임계값은 적용되지 않습니다.',
       vectorSimilarityWeight: '벡터 유사도 가중치',
       vectorSimilarityWeightTip:
         '벡터 코사인 유사도 또는 리랭킹 점수와 함께 사용되는 결합 유사도 점수에서 벡터 유사도의 가중치를 설정합니다. 두 가중치의 합은 1.0이어야 합니다.',
@@ -552,14 +552,14 @@ export default {
       changeSpecificCategory: '특정 카테고리 변경',
       uploadTitle: '파일을 여기에 드래그 앤 드롭하여 업로드',
       uploadDescription:
-        '단일 또는 일괄 파일 업로드를 지원합니다. 로컬 배포 RAGFlow의 경우: 업로드당 총 파일 크기 제한은 1GB이며, 일괄 업로드 제한은 32개 파일입니다. 계정당 총 파일 수에는 제한이 없습니다. cloud.ragflow.io의 경우: 업로드당 총 파일 크기 제한은 10MB이며, 각 파일은 10MB를 초과할 수 없고 계정당 최대 128개 파일입니다.',
+        '단일 또는 일괄 파일 업로드를 지원합니다. 로컬 배포 KRAG의 경우: 업로드당 총 파일 크기 제한은 1GB이며, 일괄 업로드 제한은 32개 파일입니다. 계정당 총 파일 수에는 제한이 없습니다. cloud.krag.io의 경우: 업로드당 총 파일 크기 제한은 10MB이며, 각 파일은 10MB를 초과할 수 없고 계정당 최대 128개 파일입니다.',
       chunk: 'Chunk',
       bulk: '일괄',
       cancel: '취소',
       close: '닫기',
       rerankModel: 'Rerank 모델',
       rerankPlaceholder: '값 선택',
-      rerankTip: `선택 사항입니다. 비워두면 RAGFlow는 가중 키워드 유사도와 가중 벡터 코사인 유사도의 조합을 사용합니다. rerank 모델을 선택하면 가중 rerank 점수가 가중 벡터 코사인 유사도를 대체합니다. rerank 모델을 사용하면 시스템 응답 시간이 크게 증가합니다.`,
+      rerankTip: `선택 사항입니다. 비워두면 KRAG는 가중 키워드 유사도와 가중 벡터 코사인 유사도의 조합을 사용합니다. rerank 모델을 선택하면 가중 rerank 점수가 가중 벡터 코사인 유사도를 대체합니다. rerank 모델을 사용하면 시스템 응답 시간이 크게 증가합니다.`,
       topK: 'Top-K',
       topKTip: `Rerank 모델과 함께 사용하며, 지정된 reranking 모델로 전송할 텍스트 chunk 수를 정의합니다.`,
       delimiter: `텍스트 구분자`,
@@ -571,11 +571,11 @@ export default {
         '구분자는 하나 또는 여러 특수 문자로 구성될 수 있습니다. 여러 문자인 경우 백틱(` `)으로 감싸야 합니다. 예를 들어 구분자를 \\n`##`;으로 설정하면 줄바꿈, 이중 해시 기호(##), 세미콜론에서 텍스트가 분리됩니다.',
 
       html4excel: 'Excel을 HTML로',
-      html4excelTip: `일반 chunking 방법과 함께 사용합니다. 비활성화 시 데이터셋의 스프레드시트(XLSX 또는 XLS(Excel 97-2003))는 키-값 쌍으로 파싱됩니다. 활성화 시 HTML 표로 파싱되며, 원래 표가 12행을 초과하면 12행마다 분리됩니다. 자세한 내용은 https://ragflow.io/docs/dataset_configuration#other-format-processing-configuration 을 참조하세요.`,
+ html4excelTip: `일반 chunking 방법과 함께 사용합니다. 비활성화 시 데이터셋의 스프레드시트(XLSX 또는 XLS(Excel 97-2003))는 키-값 쌍으로 파싱됩니다. 활성화 시 HTML 표로 파싱되며, 원래 표가 12행을 초과하면 12행마다 분리됩니다.`,
       autoKeywords: '자동 키워드',
-      autoKeywordsTip: `각 chunk에서 N개의 키워드를 자동으로 추출하여 해당 키워드가 포함된 쿼리에서의 순위를 높입니다. '설정'에서 지정된 인덱싱 모델이 추가 토큰을 소비합니다. chunk 목록에서 추가된 키워드를 확인하거나 업데이트할 수 있습니다. 자세한 내용은 https://ragflow.io/docs/dataset_configuration#content-enhancement-configuration 을 참조하세요.`,
+ autoKeywordsTip: `각 chunk에서 N개의 키워드를 자동으로 추출하여 해당 키워드가 포함된 쿼리에서의 순위를 높입니다. '설정'에서 지정된 인덱싱 모델이 추가 토큰을 소비합니다. chunk 목록에서 추가된 키워드를 확인하거나 업데이트할 수 있습니다.`,
       autoQuestions: '자동 질문',
-      autoQuestionsTip: `각 chunk에서 N개의 질문을 자동으로 추출하여 해당 질문이 포함된 쿼리에서의 순위를 높입니다. chunk 목록에서 추가된 질문을 확인하거나 업데이트할 수 있습니다. 오류가 발생해도 chunking 과정에 영향을 주지 않으나, 원래 chunk에 빈 결과가 추가될 수 있습니다. '설정'에서 지정된 인덱싱 모델이 추가 토큰을 소비합니다. 자세한 내용은 https://ragflow.io/docs/dataset_configuration#content-enhancement-configuration 을 참조하세요.`,
+ autoQuestionsTip: `각 chunk에서 N개의 질문을 자동으로 추출하여 해당 질문이 포함된 쿼리에서의 순위를 높입니다. chunk 목록에서 추가된 질문을 확인하거나 업데이트할 수 있습니다. 오류가 발생해도 chunking 과정에 영향을 주지 않으나, 원래 chunk에 빈 결과가 추가될 수 있습니다. '설정'에서 지정된 인덱싱 모델이 추가 토큰을 소비합니다.`,
       redo: '기존 {{chunkNum}}개의 chunk를 초기화하시겠습니까?',
       setMetaData: '메타데이터 설정',
       pleaseInputJson: 'JSON을 입력해 주세요',
@@ -711,7 +711,7 @@ export default {
       tableColumnModeAuto: '자동',
       tableColumnModeManual: '수동',
       tableColumnModeAutoDescription:
-        '모든 컬럼이 chunk 텍스트에 포함되고 메타데이터로 저장됩니다 (RAGFlow 기본값).',
+        '모든 컬럼이 chunk 텍스트에 포함되고 메타데이터로 저장됩니다 (KRAG 기본값).',
       tableColumnRoles: '컬럼 역할',
       tableColumnRolesTip:
         'Chunk 텍스트에 포함할 컬럼(벡터 및 전문 검색용 인덱싱), 메타데이터에만 포함할 컬럼(필터링 가능), 또는 둘 다를 선택합니다. 변경 사항은 새 파싱에 적용되며, 기존 문서에 적용하려면 재파싱이 필요합니다.',
@@ -843,7 +843,7 @@ export default {
 `,
       useRaptor: 'RAPTOR',
       useRaptorTip:
-        'RAPTOR는 멀티홉 질의응답 작업에 사용할 수 있습니다. 파일 탭에서 [생성 > RAPTOR]를 클릭하여 활성화하세요. 자세한 내용은 https://ragflow.io/docs/knowledge_compilation/built_in_templates_and_dedicated_configuration#tree 을 참조하세요.',
+ 'RAPTOR는 멀티홉 질의응답 작업에 사용할 수 있습니다. 파일 탭에서 [생성 > RAPTOR]를 클릭하여 활성화하세요.',
       prompt: '프롬프트',
       promptTip:
         'LLM의 역할, 원하는 응답 길이, 톤, 언어 등을 포함한 시스템 프롬프트를 사용하세요. 시스템 프롬프트는 LLM에 대한 다양한 데이터 입력으로 사용되는 키(변수)와 함께 자주 사용됩니다. 사용할 키를 표시하려면 슬래시 `/` 또는 (x) 버튼을 사용하세요.',
@@ -871,7 +871,7 @@ export default {
       entityTypes: '엔티티 유형',
       vietnamese: 'Tiếng Việt',
       pageRank: 'Page rank',
-      pageRankTip: `검색 시 특정 데이터셋에 더 높은 PageRank 점수를 부여할 수 있습니다. 해당 점수는 이 데이터셋에서 검색된 chunk의 하이브리드 유사도 점수에 추가되어 순위를 높입니다. 자세한 내용은 https://ragflow.io/docs/dataset_configuration#basic-information 을 참조하세요.`,
+ pageRankTip: `검색 시 특정 데이터셋에 더 높은 PageRank 점수를 부여할 수 있습니다. 해당 점수는 이 데이터셋에서 검색된 chunk의 하이브리드 유사도 점수에 추가되어 순위를 높입니다.`,
       tagName: '태그',
       frequency: '빈도',
       searchTags: '태그 검색',
@@ -879,7 +879,7 @@ export default {
       tagTable: '표',
       tagSet: '태그 세트',
       tagSetTip: `
-     <p> 데이터셋의 chunk에 자동 태그를 지정할 태그 데이터셋을 하나 이상 선택하세요. 자세한 내용은 https://ragflow.io/docs/dataset_configuration#basic-information 을 참조하세요.</p>
+ <p> 데이터셋의 chunk에 자동 태그를 지정할 태그 데이터셋을 하나 이상 선택하세요.</p>
 <p>사용자 쿼리도 자동으로 태그가 지정됩니다.</p>
 이 자동 태그 기능은 기존 데이터셋에 도메인별 지식 레이어를 추가하여 검색을 향상시킵니다.
 <p>자동 태그와 자동 키워드의 차이점:</p>
@@ -894,7 +894,7 @@ export default {
       addTag: '태그 추가',
       useGraphRag: '지식 그래프',
       useGraphRagTip:
-        '현재 데이터셋의 파일 청크에 대해 지식 그래프를 구성하여, 중첩된 논리가 포함된 멀티홉 질의응답(multi-hop QA) 성능을 향상시킵니다. 자세한 내용은 https://ragflow.io/docs/knowledge_compilation/built_in_templates_and_dedicated_configuration#graph 을 참조하세요.',
+ '현재 데이터셋의 파일 청크에 대해 지식 그래프를 구성하여, 중첩된 논리가 포함된 멀티홉 질의응답(multi-hop QA) 성능을 향상시킵니다.',
       graphRagMethod: '방법',
       graphRagMethodTip: `
       Light: (기본값) github.com/HKUDS/LightRAG에서 제공하는 프롬프트를 사용하여 엔티티와 관계를 추출합니다. 더 적은 토큰, 메모리, 연산 리소스를 사용합니다.</br>
@@ -1011,7 +1011,7 @@ export default {
       topN: 'Top N',
       topNTip: `'유사도 임계값' 이상의 유사도 점수를 가진 모든 chunk가 LLM에 전송되는 것은 아닙니다. 검색된 chunk에서 'Top N'개를 선택합니다.`,
       variable: '변수',
-      variableTip: `RAGFlow의 채팅 어시스턴트 관리 API와 함께 사용하면 변수를 통해 더 유연한 시스템 프롬프트 전략을 개발할 수 있습니다. 정의된 변수는 '시스템 프롬프트'에서 LLM의 프롬프트 일부로 사용됩니다. {knowledge}는 지정된 데이터셋에서 검색된 chunk를 나타내는 예약 특수 변수이며, 모든 변수는 '시스템 프롬프트'에서 중괄호 {}로 묶어야 합니다. 자세한 내용은 https://ragflow.io/docs/chat_configuration#system-prompt 를 참조하세요.`,
+ variableTip: `KRAG의 채팅 어시스턴트 관리 API와 함께 사용하면 변수를 통해 더 유연한 시스템 프롬프트 전략을 개발할 수 있습니다. 정의된 변수는 '시스템 프롬프트'에서 LLM의 프롬프트 일부로 사용됩니다. {knowledge}는 지정된 데이터셋에서 검색된 chunk를 나타내는 예약 특수 변수이며, 모든 변수는 '시스템 프롬프트'에서 중괄호 {}로 묶어야 합니다.`,
       add: '추가',
       key: '키',
       optional: '선택 사항',
@@ -1091,7 +1091,7 @@ export default {
       partialTitle: '부분 삽입',
       extensionTitle: 'Chrome 확장 프로그램',
       tokenError: 'API 키를 먼저 만들어 주세요.',
-      betaError: '시스템 설정 페이지에서 RAGFlow API 키를 먼저 획득해 주세요.',
+      betaError: '시스템 설정 페이지에서 KRAG API 키를 먼저 획득해 주세요.',
       searching: '검색 중...',
       parsing: '파싱 중',
       uploading: '업로드 중',
@@ -1106,7 +1106,6 @@ export default {
       multiTurn: '멀티턴 최적화',
       multiTurnTip:
         '다중 라운드 대화에서 컨텍스트를 사용하여 사용자 쿼리를 최적화합니다. 활성화하면 추가 LLM 토큰이 소비됩니다.',
-      howUseId: '채팅 ID 사용 방법?',
       description: '어시스턴트 설명',
       descriptionPlaceholder: '저는 채팅 어시스턴트입니다.',
       useKnowledgeGraph: '지식 그래프 사용',
@@ -1578,18 +1577,18 @@ export default {
       chatModelTip: '새로 생성된 각 데이터셋의 기본 LLM입니다.',
       embeddingModel: 'Embedding',
       embeddingModelTip:
-        '새로 생성된 각 데이터셋의 기본 임베딩 모델입니다. 드롭다운에서 임베딩 모델을 찾을 수 없으면 RAGFlow 슬림 에디션(임베딩 모델 미포함)을 사용 중인지 확인하거나 https://ragflow.io/docs/dev/supported_models 에서 모델 제공업체가 이 모델을 지원하는지 확인하세요.',
+ '새로 생성된 각 데이터셋의 기본 임베딩 모델입니다.',
       img2txtModel: 'VLM',
       img2txtModelTip:
-        '새로 생성된 각 데이터셋의 기본 VLM입니다. 이미지나 동영상을 설명합니다. 드롭다운에서 모델을 찾을 수 없으면 https://ragflow.io/docs/dev/supported_models 에서 모델 제공업체가 이 모델을 지원하는지 확인하세요.',
+ '새로 생성된 각 데이터셋의 기본 VLM입니다. 이미지나 동영상을 설명합니다.',
       sequence2txtModel: 'ASR',
       sequence2txtModelTip:
         '새로 생성된 각 데이터셋의 기본 ASR 모델입니다. 이 모델을 사용하여 음성을 텍스트로 변환하세요.',
       rerankModel: 'Rerank',
-      rerankModelTip: `Chunk rerank를 위한 기본 rerank 모델입니다. 드롭다운에서 모델을 찾을 수 없으면 https://ragflow.io/docs/dev/supported_models 에서 모델 제공업체가 이 모델을 지원하는지 확인하세요.`,
+ rerankModelTip: `Chunk rerank를 위한 기본 rerank 모델입니다.`,
       ttsModel: 'TTS',
       ttsModelTip:
-        '기본 텍스트 음성 변환 모델입니다. 드롭다운에서 모델을 찾을 수 없으면 https://ragflow.io/docs/dev/supported_models 에서 모델 제공업체가 이 모델을 지원하는지 확인하세요.',
+ '기본 텍스트 음성 변환 모델입니다.',
       workspace: '워크스페이스',
       upgrade: '업그레이드',
       addLlmTitle: 'LLM 추가',
@@ -1836,7 +1835,7 @@ export default {
       directory: '디렉토리',
       uploadTitle: '파일을 여기에 드래그 앤 드롭하여 업로드',
       uploadDescription:
-        '단일 또는 일괄 파일 업로드를 지원합니다. 로컬 배포 RAGFlow의 경우: 업로드당 총 파일 크기 제한은 1GB이며, 일괄 업로드 제한은 32개 파일입니다. 계정당 총 파일 수에는 제한이 없습니다. cloud.ragflow.io의 경우: 업로드당 총 파일 크기 제한은 10MB이며, 각 파일은 10MB를 초과할 수 없고 계정당 최대 128개 파일입니다.',
+        '단일 또는 일괄 파일 업로드를 지원합니다. 로컬 배포 KRAG의 경우: 업로드당 총 파일 크기 제한은 1GB이며, 일괄 업로드 제한은 32개 파일입니다. 계정당 총 파일 수에는 제한이 없습니다. cloud.krag.io의 경우: 업로드당 총 파일 크기 제한은 10MB이며, 각 파일은 10MB를 초과할 수 없고 계정당 최대 128개 파일입니다.',
       local: '로컬 업로드',
       s3: 'S3 업로드',
       preview: '미리보기',
@@ -2404,7 +2403,6 @@ export default {
       input: '입력',
       output: '출력',
       parameter: '파라미터',
-      howUseId: '에이전트 ID를 어떻게 사용하나요?',
       content: '내용',
       operationResults: '작업 결과',
       autosaved: '자동 저장됨',
@@ -2999,7 +2997,7 @@ Important structured information may include: names, dates, locations, events, k
     },
     admin: {
       loginTitle: '관리자 콘솔',
-      title: 'RAGFlow',
+      title: 'KRAG',
       confirm: '확인',
       close: '닫기',
       yes: '예',

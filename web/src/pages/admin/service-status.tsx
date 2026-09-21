@@ -80,7 +80,7 @@ const globalFilterFn = createFuzzySearchFn<AdminService.ListServicesItem>([
 ]);
 
 const SERVICE_TYPE_FILTER_OPTIONS = [
-  { value: 'ragflow_server', label: 'ragflow_server' },
+  { value: 'ragflow_server', label: 'KRAG server' },
   { value: 'meta_data', label: 'meta_data' },
   { value: 'file_store', label: 'file_store' },
   { value: 'retrieval', label: 'retrieval' },

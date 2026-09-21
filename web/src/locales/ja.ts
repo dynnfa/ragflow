@@ -131,9 +131,6 @@ export default {
       welcome: 'ようこそ',
       dataset: 'データセット',
       memories: 'メモリー',
-      discord: 'Discord',
-      github: 'GitHub',
-      help: 'ヘルプ',
     },
 
     knowledgeList: {
@@ -172,7 +169,7 @@ export default {
       parsingStatus: 'パースステータス',
 
       parsingStatusTip:
-        'ドキュメントの解析時間はさまざまな要因によって異なります。Knowledge Graph、RAPTOR、自動質問抽出、自動キーワード抽出などの機能を有効にすると、処理時間が大幅に増加します。進行バーが止まった場合は、次の2つのFAQをご参照ください: https://ragflow.io/docs/dev/faq#why-does-my-document-parsing-stall-at-under-one-percent.',
+ 'ドキュメントの解析時間はさまざまな要因によって異なります。Knowledge Graph、RAPTOR、自動質問抽出、自動キーワード抽出などの機能を有効にすると、処理時間が大幅に増加します。',
 
       processBeginAt: 'プロセス開始時刻',
       processDuration: '処理時間',
@@ -184,7 +181,7 @@ export default {
       similarityThreshold: '類似度しきい値',
 
       similarityThresholdTip:
-        'RAGFlowは検索時に、重み付けされたキーワード類似度と重み付けされたベクトルコサイン類似度の組み合わせ、またはリランカーモデルが選択されている場合は、重み付けされたキーワード類似度と重み付けされたリランキングスコアの組み合わせを使用します。このパラメーターは、ユーザークエリとチャンク間の類似度のしきい値を設定します。類似度スコアがこのしきい値を下回るチャンクは結果から除外されます。デフォルトでは、しきい値は20に設定されています。つまり、ハイブリッド類似度スコアが20以上のチャンクのみが検索されます。ベクトル類似度の重みが0に設定されている場合、このしきい値は適用されません。',
+        'KRAGは検索時に、重み付けされたキーワード類似度と重み付けされたベクトルコサイン類似度の組み合わせ、またはリランカーモデルが選択されている場合は、重み付けされたキーワード類似度と重み付けされたリランキングスコアの組み合わせを使用します。このパラメーターは、ユーザークエリとチャンク間の類似度のしきい値を設定します。類似度スコアがこのしきい値を下回るチャンクは結果から除外されます。デフォルトでは、しきい値は20に設定されています。つまり、ハイブリッド類似度スコアが20以上のチャンクのみが検索されます。ベクトル類似度の重みが0に設定されている場合、このしきい値は適用されません。',
 
       vectorSimilarityWeight: 'ベクトル類似度の重み',
 
@@ -220,7 +217,7 @@ export default {
       layoutRecognize: 'レイアウト認識',
 
       layoutRecognizeTip:
-        'レイアウト分析のためにビジュアルモデルを使用し、文書の構造を理解しやすくします。詳細については、https://ragflow.io/docs/dataset_configuration#document-parsing-configuration をご覧ください。',
+ 'レイアウト分析のためにビジュアルモデルを使用し、文書の構造を理解しやすくします。',
 
       taskPageSize: 'タスクページサイズ',
       taskPageSizeMessage: 'タスクページサイズを入力してください',
@@ -243,7 +240,7 @@ export default {
       cancel: 'キャンセル',
       rerankModel: 'リランキングモデル',
       rerankPlaceholder: '選択してください',
-      rerankTip: `任意です。空欄の場合、RAGFlowは加重キーワード類似度と加重ベクトルコサイン類似度の組み合わせを使用します。リランキングモデルが選択された場合は、加重リランキングスコアが加重ベクトルコサイン類似度に代わります。リランキングモデルを使用すると、システムの応答時間が大幅に増加することにご注意ください。`,
+      rerankTip: `任意です。空欄の場合、KRAGは加重キーワード類似度と加重ベクトルコサイン類似度の組み合わせを使用します。リランキングモデルが選択された場合は、加重リランキングスコアが加重ベクトルコサイン類似度に代わります。リランキングモデルを使用すると、システムの応答時間が大幅に増加することにご注意ください。`,
       topK: 'トップK',
       topKTip: `Rerank modelと一緒に使用する場合、この設定は指定されたreranking modelに送信するテキストのチャンク数を定義します。`,
       delimiter: `テキストセグメンテーションの区切り文字`,
@@ -252,11 +249,11 @@ export default {
         'デリミタやセパレータは、一つまたは複数の特殊文字で構成できます。複数の文字の場合、バッククォート(``)で囲むようにしてください。たとえば、デリミタを次のように設定した場合: \\n ## ;、テキストは行末、ダブルハッシュ記号(##)、およびセミコロンで分割されます。デリミタを設定する前に、テキストのセグメンテーションとチャンキングのメカニズムを理解していることを確認してください。',
 
       html4excel: 'ExcelをHTMLに変換',
-      html4excelTip: `General切片方法と併用してください。無効の場合、表計算ファイル（XLSX、XLS（Excel 97-2003））は行ごとにキーと値のペアとして解析されます。有効の場合、表計算ファイルはHTML表として解析されます。元の表が12行を超える場合、システムは自動的に12行ごとに複数のHTML表に分割します。詳細については、https://ragflow.io/docs/dataset_configuration#other-format-processing-configuration をご覧ください。`,
+ html4excelTip: `General切片方法と併用してください。無効の場合、表計算ファイル（XLSX、XLS（Excel 97-2003））は行ごとにキーと値のペアとして解析されます。有効の場合、表計算ファイルはHTML表として解析されます。元の表が12行を超える場合、システムは自動的に12行ごとに複数のHTML表に分割します。`,
       autoKeywords: '自動キーワード',
-      autoKeywordsTip: `各チャンクに含まれるキーワードのランキングを向上させるために、自動的にN個のキーワードを抽出します。「システムモデル設定」で指定されたチャットモデルによって追加のトークンが消費されることに注意してください。チャンクリストから追加されたキーワードを確認または更新することができます。詳細は https://ragflow.io/docs/dataset_configuration#content-enhancement-configuration をご覧ください。`,
+ autoKeywordsTip: `各チャンクに含まれるキーワードのランキングを向上させるために、自動的にN個のキーワードを抽出します。「システムモデル設定」で指定されたチャットモデルによって追加のトークンが消費されることに注意してください。チャンクリストから追加されたキーワードを確認または更新することができます。`,
       autoQuestions: '自動質問',
-      autoQuestionsTip: `ランキングスコアを向上させるために、「システムモデル設定」で定義されたチャットモデルを使用して、ナレッジベースのチャンクごとにN個の質問を抽出します。 これにより、追加のトークンが消費されることに注意してください。 結果はチャンクリストで表示および編集できます。 質問抽出エラーはチャンク処理をブロックしません。空の結果が元のチャンクに追加されます。詳細は https://ragflow.io/docs/dataset_configuration#content-enhancement-configuration をご覧ください。`,
+ autoQuestionsTip: `ランキングスコアを向上させるために、「システムモデル設定」で定義されたチャットモデルを使用して、ナレッジベースのチャンクごとにN個の質問を抽出します。 これにより、追加のトークンが消費されることに注意してください。 結果はチャンクリストで表示および編集できます。 質問抽出エラーはチャンク処理をブロックしません。空の結果が元のチャンクに追加されます。`,
 
       metadata: {
         fields: 'フィールド',
@@ -361,7 +358,7 @@ export default {
       testSetting: '設定',
       retrievalTesting: '検索テスト',
       retrievalTestingDescription:
-        '検索テストを実行し、RAGFlowがLLMに必要な内容を正しく取得できるかを確認します。',
+        '検索テストを実行し、KRAGがLLMに必要な内容を正しく取得できるかを確認します。',
       Parse: 'パース',
       knowledgeGraph: 'ナレッジグラフ',
       compilation: 'コンパイル',
@@ -539,7 +536,7 @@ export default {
       useRaptor: 'RAPTORを使用して検索を強化',
 
       useRaptorTip:
-        'マルチホップ質問応答タスクでRAPTORを有効にしてください。詳細は https://ragflow.io/docs/knowledge_compilation/built_in_templates_and_dedicated_configuration#tree をご覧ください。',
+ 'マルチホップ質問応答タスクでRAPTORを有効にしてください。',
 
       prompt: 'プロンプト',
 
@@ -568,7 +565,7 @@ export default {
       randomSeedMessage: 'ランダムシードは必須です',
       entityTypes: 'エンティティタイプ',
       pageRank: 'ページランク',
-      pageRankTip: `検索時に特定の知識ベースにより高いPageRankスコアを割り当てることができます。対応するスコアは、これらの知識ベースから取得されたチャンクのハイブリッド類似度スコアに加算され、ランキングが向上します。詳細については、https://ragflow.io/docs/dataset_configuration#basic-information を参照してください。`,
+ pageRankTip: `検索時に特定の知識ベースにより高いPageRankスコアを割り当てることができます。対応するスコアは、これらの知識ベースから取得されたチャンクのハイブリッド類似度スコアに加算され、ランキングが向上します。`,
       paddleocrOptions: 'PaddleOCRオプション',
       paddleocrApiUrl: 'PaddleOCR API URL',
       paddleocrApiUrlTip: 'PaddleOCRサービスのAPIエンドポイントURL',
@@ -642,7 +639,7 @@ export default {
       tableColumnModeAuto: '自動',
       tableColumnModeManual: '手動',
       tableColumnModeAutoDescription:
-        'すべての列がチャンクテキストに含まれ、メタデータとしても保存されます（RAGFlowのデフォルト）。',
+        'すべての列がチャンクテキストに含まれ、メタデータとしても保存されます（KRAGのデフォルト）。',
       tableColumnRoles: '列の役割',
       tableColumnRolesTip:
         '各列を、チャンクテキストに含める（ベクトル検索・全文検索の対象になります）、メタデータのみに含める（フィルタ可能）、または両方に含めるかを選択します。変更は新規のパース処理に適用されます。既存ドキュメントに反映するには再パースが必要です。',
@@ -688,13 +685,13 @@ export default {
       tagTable: 'テーブル',
       tagSet: 'タグセット',
       tagSetTip:
-        '\n     <p> 1つまたは複数のタグデータセットを選択すると、データセット内のチャンクに自動的にタグが付与されます。詳細は https://ragflow.io/docs/dataset_configuration#basic-information をご覧ください。</p>\n<p>ユーザーのクエリにも自動的にタグが付与されます。</p>\nこの自動タグ付け機能は、既存のデータセットにドメイン固有の知識をもう一層追加することで、検索精度を向上させます。\n<p>自動タグ付けと自動キーワードの違い:</p>\n<ul>\n  <li>タグデータセットはユーザーが定義したクローズドセットであるのに対し、LLMが抽出するキーワードはオープンセットとみなせます。</li>\n  <li>自動タグ付け機能を実行する前に、指定された形式でタグセットをアップロードする必要があります。</li>\n  <li>自動キーワード機能はLLMに依存しており、多くのトークンを消費します。</li>\n</ul>\n      ',
+ '\n <p> 1つまたは複数のタグデータセットを選択すると、データセット内のチャンクに自動的にタグが付与されます。</p>\n<p>ユーザーのクエリにも自動的にタグが付与されます。</p>\nこの自動タグ付け機能は、既存のデータセットにドメイン固有の知識をもう一層追加することで、検索精度を向上させます。\n<p>自動タグ付けと自動キーワードの違い:</p>\n<ul>\n <li>タグデータセットはユーザーが定義したクローズドセットであるのに対し、LLMが抽出するキーワードはオープンセットとみなせます。</li>\n <li>自動タグ付け機能を実行する前に、指定された形式でタグセットをアップロードする必要があります。</li>\n <li>自動キーワード機能はLLMに依存しており、多くのトークンを消費します。</li>\n</ul>\n ',
       topnTags: '上位N件のタグ',
       tags: 'タグ',
       addTag: 'タグを追加',
       useGraphRag: 'ナレッジグラフ',
       useGraphRagTip:
-        '現在のデータセットのファイルチャンクに対してナレッジグラフを構築し、入れ子になったロジックを含むマルチホップの質問応答を強化します。詳細は https://ragflow.io/docs/knowledge_compilation/built_in_templates_and_dedicated_configuration#graph をご覧ください。',
+ '現在のデータセットのファイルチャンクに対してナレッジグラフを構築し、入れ子になったロジックを含むマルチホップの質問応答を強化します。',
       graphRagMethod: '方法',
       graphRagMethodTip:
         '\n      Light: （デフォルト）github.com/HKUDS/LightRAG が提供するプロンプトを使用して、エンティティと関係性を抽出します。このオプションは、トークン・メモリ・計算リソースの消費が少なくて済みます。</br>\n      General: github.com/microsoft/graphrag が提供するプロンプトを使用して、エンティティと関係性を抽出します。</br>\n      NER: spaCyのNERとルールベースのキーワード抽出を使用して、エンティティと関係性を抽出します。抽出自体にLLMを必要としないため、高速でリソース効率に優れています。',
@@ -822,7 +819,7 @@ export default {
       topN: 'トップN',
       topNTip: `類似度スコアがしきい値を超えるチャンクのうち、上位N件のみがLLMに供給されます。`,
       variable: '変数',
-      variableTip: `RAGFlowのチャットアシスタント管理APIと組み合わせて使用することで、変数はより柔軟なシステムプロンプト戦略を開発するのに役立ちます。定義された変数は、LLMのプロンプトの一部として「システムプロンプト」で使用されます。{knowledge}は、指定された知識ベースから取得された部分を表す特別な予約変数であり、「システムプロンプト」ではすべての変数を波括弧{}で囲む必要があります。詳細はhttps://ragflow.io/docs/chat_configuration#system-promptを参照してください。`,
+ variableTip: `KRAGのチャットアシスタント管理APIと組み合わせて使用することで、変数はより柔軟なシステムプロンプト戦略を開発するのに役立ちます。定義された変数は、LLMのプロンプトの一部として「システムプロンプト」で使用されます。{knowledge}は、指定された知識ベースから取得された部分を表す特別な予約変数であり、「システムプロンプト」ではすべての変数を波括弧{}で囲む必要があります。`,
       add: '追加',
       key: 'キー',
       optional: 'オプション',
@@ -907,7 +904,7 @@ export default {
       partialTitle: '部分埋め込み',
       extensionTitle: 'Chrome拡張機能',
       tokenError: 'まずAPIトークンを作成してください！',
-      betaError: 'システム設定ページからRAGFlow APIキーを取得してください。',
+      betaError: 'システム設定ページからKRAG APIキーを取得してください。',
       searching: '検索中...',
       parsing: '解析中',
       uploading: 'アップロード中',
@@ -926,7 +923,6 @@ export default {
       multiTurnTip:
         'マルチラウンドの会話では、ナレッジベースへのクエリが最適化されます。大規模モデルが呼び出され、追加のトークンが消費されます。',
 
-      howUseId: 'チャットIDの使い方？',
       description: 'アシスタントの説明',
       descriptionPlaceholder: '例: 履歴書用のチャットアシスタント',
       useKnowledgeGraph: 'ナレッジグラフを使用',
@@ -1107,24 +1103,24 @@ export default {
       embeddingModel: '埋め込みモデル',
 
       embeddingModelTip:
-        '新しく作成された各ナレッジベースのデフォルト埋め込みモデルです。ドロップダウンから埋め込みモデルが見つからない場合は、RAGFlowスリムエディション（埋め込みモデルを含まない）を使用しているか、https://ragflow.io/docs/dev/supported_models を確認して、モデルプロバイダーがこのモデルをサポートしているかどうかを確認してください。',
+ '新しく作成された各ナレッジベースのデフォルト埋め込みモデルです。',
 
       img2txtModel: '画像からテキストへのモデル',
 
       img2txtModelTip:
-        '新しく作成された知識ベースごとのデフォルトのimg2txtモデル。それは画像や動画を説明します。ドロップダウンからモデルが見つからない場合は、https://ragflow.io/docs/dev/supported_models を確認して、モデルプロバイダーがこのモデルをサポートしているかどうかを確認してください。',
+ '新しく作成された知識ベースごとのデフォルトのimg2txtモデル。それは画像や動画を説明します。',
 
       sequence2txtModel: 'シーケンスからテキストへのモデル',
 
       sequence2txtModelTip:
-        '新しく作成されたナレッジベースが使用するデフォルトのASRモデル。音声を対応するテキストに変換するために使用します。ドロップダウンからモデルが見つからない場合は、https://ragflow.io/docs/dev/supported_models を確認して、モデルプロバイダーがこのモデルをサポートしているかどうかを確認してください。',
+ '新しく作成されたナレッジベースが使用するデフォルトのASRモデル。音声を対応するテキストに変換するために使用します。',
 
       rerankModel: '再ランクモデル',
-      rerankModelTip: `チャンクをrerankingするためのデフォルトのrerankモデル。ドロップダウンからモデルが見つからない場合は、https://ragflow.io/docs/dev/supported_models を確認して、ご使用のモデルプロバイダーがこのモデルをサポートしているかをご確認ください。`,
+ rerankModelTip: `チャンクをrerankingするためのデフォルトのrerankモデル。`,
       ttsModel: 'TTSモデル',
 
       ttsModelTip:
-        'デフォルトのtext-to-speechモデル。ドロップダウンからモデルが見つからない場合は、https://ragflow.io/docs/dev/supported_models を確認して、ご使用のモデルプロバイダーがこのモデルをサポートしているかをご確認ください。',
+ 'デフォルトのtext-to-speechモデル。',
 
       workspace: 'ワークスペース',
       upgrade: 'アップグレード',
@@ -1857,7 +1853,7 @@ export default {
       uploadTitle: 'クリックまたはドラッグしてファイルをアップロード',
 
       uploadDescription:
-        'RAGFlowは、単一またはバッチでのファイルアップロードをサポートします。ローカルにデプロイされた RAGFlow の場合: アップロードごとの合計ファイルサイズ制限は 1GB、バッチアップロードの制限は 32 ファイルです。アカウントごとのファイル総数には制限がありません。cloud.ragflow.io の場合: アップロードごとの合計ファイルサイズ制限は 10MB、各ファイルは 10MB を超えず、アカウントごとに最大 128 ファイルまでです。',
+        'KRAGは、単一またはバッチでのファイルアップロードをサポートします。ローカルにデプロイされた KRAG の場合: アップロードごとの合計ファイルサイズ制限は 1GB、バッチアップロードの制限は 32 ファイルです。アカウントごとのファイル総数には制限がありません。cloud.krag.io の場合: アップロードごとの合計ファイルサイズ制限は 10MB、各ファイルは 10MB を超えず、アカウントごとに最大 128 ファイルまでです。',
 
       local: 'ローカルアップロード',
       s3: 'S3アップロード',
@@ -1865,7 +1861,7 @@ export default {
       fileError: 'ファイルエラー',
 
       uploadLimit:
-        'RAGFlowは、単一またはバッチでのファイルアップロードをサポートします。ローカルにデプロイされた RAGFlow の場合: アップロードごとの合計ファイルサイズ制限は 1GB、バッチアップロードの制限は 32 ファイルです。アカウントごとのファイル総数には制限がありません。cloud.ragflow.io の場合: アップロードごとの合計ファイルサイズ制限は 10MB、各ファイルは 10MB を超えず、アカウントごとに最大 128 ファイルまでです。',
+        'KRAGは、単一またはバッチでのファイルアップロードをサポートします。ローカルにデプロイされた KRAG の場合: アップロードごとの合計ファイルサイズ制限は 1GB、バッチアップロードの制限は 32 ファイルです。アカウントごとのファイル総数には制限がありません。cloud.krag.io の場合: アップロードごとの合計ファイルサイズ制限は 10MB、各ファイルは 10MB を超えず、アカウントごとに最大 128 ファイルまでです。',
 
       destinationFolder: '保存先フォルダ',
       uploadFolderTitle: 'フォルダをアップロード',
@@ -2349,7 +2345,6 @@ export default {
       input: '入力',
       output: '出力',
       parameter: 'パラメータ',
-      howUseId: 'エージェントIDの使用方法',
       content: 'コンテンツ',
       operationResults: '操作結果',
       autosaved: '自動保存済み',
@@ -3013,7 +3008,7 @@ export default {
 
     admin: {
       loginTitle: '管理コンソール',
-      title: 'RAGFlow',
+      title: 'KRAG',
       confirm: '確認',
       close: '閉じる',
       yes: 'はい',

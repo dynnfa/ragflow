@@ -44,13 +44,7 @@ export const LocalLlmConfigs: Record<string, ProviderConfig> = {
     ],
     'https://docs.aimlapi.com/quickstart/simple-model',
   ),
-  [LLMFactory.Ollama]: buildLocalConfig(
-    LLMFactory.Ollama,
-    'Ollama',
-    false,
-    undefined,
-    'https://github.com/infiniflow/ragflow/blob/main/docs/guides/models/deploy_local_llm.mdx',
-  ),
+  [LLMFactory.Ollama]: buildLocalConfig(LLMFactory.Ollama, 'Ollama', false),
   [LLMFactory.Xinference]: buildLocalConfig(
     LLMFactory.Xinference,
     'Xinference',
@@ -132,13 +126,7 @@ export const LocalLlmConfigs: Record<string, ProviderConfig> = {
     ],
     'https://mws.ru/docs/cloud-platform/gpt/general/inference-text.html',
   ),
-  [LLMFactory.RAGcon]: buildLocalConfig(
-    LLMFactory.RAGcon,
-    'RAGcon',
-    false,
-    undefined,
-    'https://www.ragcon.ai/erste-schritte-mit-ragflow/',
-  ),
+  [LLMFactory.RAGcon]: buildLocalConfig(LLMFactory.RAGcon, 'RAGcon', false),
   [LLMFactory.TogetherAI]: buildLocalConfig(
     LLMFactory.TogetherAI,
     'TogetherAI',

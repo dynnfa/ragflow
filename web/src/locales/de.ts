@@ -290,7 +290,7 @@ Beispiel: Eine 1 KB Nachricht mit 1024-dim Einbettung verwendet ~9 KB. Das Stand
       testSetting: 'Einstellung',
       retrievalTesting: 'Abruftest',
       retrievalTestingDescription:
-        'Führen Sie einen Abruftest durch, um zu prüfen, ob RAGFlow die beabsichtigten Inhalte für das LLM wiederherstellen kann.',
+        'Führen Sie einen Abruftest durch, um zu prüfen, ob KRAG die beabsichtigten Inhalte für das LLM wiederherstellen kann.',
       Parse: 'Analysieren',
       dataset: 'Datensatz',
       testing: 'Abruftest',
@@ -315,7 +315,7 @@ Beispiel: Eine 1 KB Nachricht mit 1024-dim Einbettung verwendet ~9 KB. Das Stand
       action: 'Aktion',
       parsingStatus: 'Analysestatus',
       parsingStatusTip:
-        'Die Verarbeitungszeit für Dokumente variiert je nach mehreren Faktoren. Das Aktivieren von Funktionen wie Knowledge Graph, RAPTOR, automatischer Frage- oder Schlüsselwort-Extraktion verlängert die Bearbeitungszeit deutlich. Wenn der Fortschrittsbalken stehen bleibt, konsultieren Sie bitte diese beiden FAQs: https://ragflow.io/docs/dev/faq#why-does-my-document-parsing-stall-at-under-one-percent.',
+ 'Die Verarbeitungszeit für Dokumente variiert je nach mehreren Faktoren. Das Aktivieren von Funktionen wie Knowledge Graph, RAPTOR, automatischer Frage- oder Schlüsselwort-Extraktion verlängert die Bearbeitungszeit deutlich.',
       processBeginAt: 'Beginn',
       processDuration: 'Dauer',
       progressMsg: 'Fortschritt',
@@ -324,10 +324,10 @@ Beispiel: Eine 1 KB Nachricht mit 1024-dim Einbettung verwendet ~9 KB. Das Stand
       noTestResultsForNotRuned:
         'Es wurde noch kein Test durchgeführt. Ergebnisse werden hier angezeigt.',
       testingDescription:
-        'Führen Sie einen Abruftest durch, um zu prüfen, ob RAGFlow die beabsichtigten Inhalte für das LLM wiederherstellen kann.',
+        'Führen Sie einen Abruftest durch, um zu prüfen, ob KRAG die beabsichtigten Inhalte für das LLM wiederherstellen kann.',
       similarityThreshold: 'Ähnlichkeitsschwelle',
       similarityThresholdTip:
-        'RAGFlow verwendet beim Abruf entweder eine Kombination aus gewichteter Schlüsselwortähnlichkeit und gewichteter Vektorkosinusähnlichkeit oder, wenn ein Reranker-Modell ausgewählt ist, eine Kombination aus gewichteter Schlüsselwortähnlichkeit und gewichtetem Reranking-Score. Dieser Parameter legt den Schwellenwert für die Ähnlichkeit zwischen der Benutzeranfrage und den Chunks fest. Jeder Chunk mit einem Ähnlichkeitswert unter diesem Schwellenwert wird aus den Ergebnissen ausgeschlossen. Standardmäßig ist der Schwellenwert auf 20 festgelegt. Das bedeutet, dass nur Chunks mit einem hybriden Ähnlichkeitswert von 20 oder höher abgerufen werden. Wenn die Gewichtung der Vektorähnlichkeit auf 0 gesetzt ist, gilt dieser Schwellenwert nicht.',
+        'KRAG verwendet beim Abruf entweder eine Kombination aus gewichteter Schlüsselwortähnlichkeit und gewichteter Vektorkosinusähnlichkeit oder, wenn ein Reranker-Modell ausgewählt ist, eine Kombination aus gewichteter Schlüsselwortähnlichkeit und gewichtetem Reranking-Score. Dieser Parameter legt den Schwellenwert für die Ähnlichkeit zwischen der Benutzeranfrage und den Chunks fest. Jeder Chunk mit einem Ähnlichkeitswert unter diesem Schwellenwert wird aus den Ergebnissen ausgeschlossen. Standardmäßig ist der Schwellenwert auf 20 festgelegt. Das bedeutet, dass nur Chunks mit einem hybriden Ähnlichkeitswert von 20 oder höher abgerufen werden. Wenn die Gewichtung der Vektorähnlichkeit auf 0 gesetzt ist, gilt dieser Schwellenwert nicht.',
       vectorSimilarityWeight: 'Schlüsselwortähnlichkeitsgewicht',
       vectorSimilarityWeightTip:
         'Damit wird die Gewichtung der Vektorähnlichkeit im kombinierten Ähnlichkeitswert festgelegt, entweder in Verbindung mit der Vektorkosinusähnlichkeit oder dem Reranking-Score. Die Summe der beiden Gewichtungen muss 1,0 ergeben.',
@@ -360,7 +360,7 @@ Beispiel: Eine 1 KB Nachricht mit 1024-dim Einbettung verwendet ~9 KB. Das Stand
       toMessage: 'Endseitennummer fehlt (ausgeschlossen)',
       layoutRecognize: 'Dokumentenparser',
       layoutRecognizeTip:
-        'Verwendet ein visuelles Modell für die PDF-Layout-Analyse, um Dokumententitel, Textblöcke, Bilder und Tabellen effektiv zu lokalisieren. Wenn die einfache Option gewählt wird, wird nur der reine Text im PDF abgerufen. Bitte beachten Sie, dass diese Option derzeit NUR für PDF-Dokumente funktioniert. Weitere Informationen finden Sie unter https://ragflow.io/docs/dataset_configuration#document-parsing-configuration.',
+ 'Verwendet ein visuelles Modell für die PDF-Layout-Analyse, um Dokumententitel, Textblöcke, Bilder und Tabellen effektiv zu lokalisieren. Wenn die einfache Option gewählt wird, wird nur der reine Text im PDF abgerufen. Bitte beachten Sie, dass diese Option derzeit NUR für PDF-Dokumente funktioniert.',
       taskPageSize: 'Aufgabenseitengröße',
       taskPageSizeMessage: 'Bitte geben Sie die Größe der Aufgabenseite ein!',
       taskPageSizeTip:
@@ -373,7 +373,7 @@ Beispiel: Eine 1 KB Nachricht mit 1024-dim Einbettung verwendet ~9 KB. Das Stand
       changeSpecificCategory: 'Spezifische Kategorie ändern',
       uploadTitle: 'Ziehen Sie Ihre Datei hierher, um sie hochzuladen',
       uploadDescription:
-        'RAGFlow unterstützt das Hochladen von Dateien einzeln oder in Batches. Für lokal bereitgestelltes RAGFlow: Die maximale Dateigröße pro Upload beträgt 1 GB, mit einem Batch-Upload-Limit von 32 Dateien. Es gibt keine Begrenzung der Gesamtanzahl an Dateien pro Konto. Für cloud.ragflow.io: Die maximale Dateigröße pro Upload beträgt 10 MB, wobei jede Datei nicht größer als 10 MB sein darf und maximal 128 Dateien pro Konto erlaubt sind.',
+        'KRAG unterstützt das Hochladen von Dateien einzeln oder in Batches. Für lokal bereitgestelltes KRAG: Die maximale Dateigröße pro Upload beträgt 1 GB, mit einem Batch-Upload-Limit von 32 Dateien. Es gibt keine Begrenzung der Gesamtanzahl an Dateien pro Konto. Für cloud.krag.io: Die maximale Dateigröße pro Upload beträgt 10 MB, wobei jede Datei nicht größer als 10 MB sein darf und maximal 128 Dateien pro Konto erlaubt sind.',
       chunk: 'Chunk',
       bulk: 'Masse',
       cancel: 'Abbrechen',
@@ -381,7 +381,7 @@ Beispiel: Eine 1 KB Nachricht mit 1024-dim Einbettung verwendet ~9 KB. Das Stand
       rerankModel: 'Rerank-modell',
       rerankPlaceholder: 'Bitte auswählen',
       rerankTip:
-        'Wenn leer gelassen, verwendet RAGFlow eine Kombination aus gewichteter Schlüsselwortähnlichkeit und gewichteter Vektorkosinus-Ähnlichkeit; wenn ein Rerank-modell ausgewählt wird, ersetzt eine gewichtete Rerank-bewertung die gewichtete Vektorkosinus-Ähnlichkeit. Bitte beachten Sie, dass die Verwendung eines Rerank-modells die Antwortzeit des Systems erheblich erhöht.',
+        'Wenn leer gelassen, verwendet KRAG eine Kombination aus gewichteter Schlüsselwortähnlichkeit und gewichteter Vektorkosinus-Ähnlichkeit; wenn ein Rerank-modell ausgewählt wird, ersetzt eine gewichtete Rerank-bewertung die gewichtete Vektorkosinus-Ähnlichkeit. Bitte beachten Sie, dass die Verwendung eines Rerank-modells die Antwortzeit des Systems erheblich erhöht.',
       topK: 'Top-K',
       topKTip:
         'In Verbindung mit dem Rerank model wird mit dieser Einstellung die Anzahl der Textblöcke festgelegt, die an das angegebene reranking model gesendet werden.',
@@ -395,13 +395,13 @@ Beispiel: Eine 1 KB Nachricht mit 1024-dim Einbettung verwendet ~9 KB. Das Stand
         'Ein Trennzeichen oder Separator kann aus einem oder mehreren Sonderzeichen bestehen. Bei mehreren Zeichen stellen Sie sicher, dass sie in Backticks (` `) eingeschlossen sind. Wenn Sie beispielsweise Ihre Trennzeichen so konfigurieren: \\n`##`;, dann werden Ihre Texte an Zeilenumbrüchen, doppelten Rautenzeichen (##) oder Semikolons getrennt.',
       html4excel: 'Excel zu HTML',
       html4excelTip:
-        'Verwenden Sie dies zusammen mit der General-Schnittmethode. Wenn deaktiviert, werden Tabellenkalkulationsdateien (XLSX, XLS (Excel 97-2003)) zeilenweise in Schlüssel-Wert-Paare analysiert. Wenn aktiviert, werden Tabellenkalkulationsdateien in HTML-Tabellen umgewandelt. Wenn die ursprüngliche Tabelle mehr als 12 Zeilen enthält, teilt das System sie automatisch alle 12 Zeilen in mehrere HTML-Tabellen auf. Für weitere Informationen siehe https://ragflow.io/docs/dataset_configuration#other-format-processing-configuration.',
+ 'Verwenden Sie dies zusammen mit der General-Schnittmethode. Wenn deaktiviert, werden Tabellenkalkulationsdateien (XLSX, XLS (Excel 97-2003)) zeilenweise in Schlüssel-Wert-Paare analysiert. Wenn aktiviert, werden Tabellenkalkulationsdateien in HTML-Tabellen umgewandelt. Wenn die ursprüngliche Tabelle mehr als 12 Zeilen enthält, teilt das System sie automatisch alle 12 Zeilen in mehrere HTML-Tabellen auf.',
       autoKeywords: 'Auto-Schlüsselwort',
       autoKeywordsTip:
-        'Extrahieren Sie automatisch N Schlüsselwörter für jeden Abschnitt, um deren Ranking in Abfragen mit diesen Schlüsselwörtern zu verbessern. Beachten Sie, dass zusätzliche Tokens vom in den "Systemmodelleinstellungen" angegebenen Chat-Modell verbraucht werden. Sie können die hinzugefügten Schlüsselwörter eines Abschnitts in der Abschnittsliste überprüfen oder aktualisieren. Für weitere Informationen siehe https://ragflow.io/docs/dataset_configuration#content-enhancement-configuration.',
+ 'Extrahieren Sie automatisch N Schlüsselwörter für jeden Abschnitt, um deren Ranking in Abfragen mit diesen Schlüsselwörtern zu verbessern. Beachten Sie, dass zusätzliche Tokens vom in den "Systemmodelleinstellungen" angegebenen Chat-Modell verbraucht werden. Sie können die hinzugefügten Schlüsselwörter eines Abschnitts in der Abschnittsliste überprüfen oder aktualisieren.',
       autoQuestions: 'Auto-Frage',
       autoQuestionsTip:
-        'Um die Ranking-Ergebnisse zu verbessern, extrahieren Sie N Fragen für jeden Wissensdatenbank-Chunk mithilfe des im "Systemmodell-Setup" definierten Chatmodells. Beachten Sie, dass dies zusätzliche Token verbraucht. Die Ergebnisse können in der Chunk-Liste eingesehen und bearbeitet werden. Fehler bei der Fragenextraktion blockieren den Chunking-Prozess nicht; leere Ergebnisse werden dem ursprünglichen Chunk hinzugefügt. Für weitere Informationen siehe https://ragflow.io/docs/dataset_configuration#content-enhancement-configuration.',
+ 'Um die Ranking-Ergebnisse zu verbessern, extrahieren Sie N Fragen für jeden Wissensdatenbank-Chunk mithilfe des im "Systemmodell-Setup" definierten Chatmodells. Beachten Sie, dass dies zusätzliche Token verbraucht. Die Ergebnisse können in der Chunk-Liste eingesehen und bearbeitet werden. Fehler bei der Fragenextraktion blockieren den Chunking-Prozess nicht; leere Ergebnisse werden dem ursprünglichen Chunk hinzugefügt.',
       redo: 'Möchten Sie die vorhandenen {{chunkNum}} Chunks löschen?',
       setMetaData: 'Metadaten festlegen',
       pleaseInputJson: 'Bitte JSON eingeben',
@@ -640,7 +640,7 @@ Beispiel: Eine 1 KB Nachricht mit 1024-dim Einbettung verwendet ~9 KB. Das Stand
 `,
       useRaptor: 'RAPTOR zur Verbesserung des Abrufs verwenden',
       useRaptorTip:
-        'RAPTOR für Multi-Hop-Frage-Antwort-Aufgaben aktivieren. Details unter https://ragflow.io/docs/knowledge_compilation/built_in_templates_and_dedicated_configuration#tree.',
+ 'RAPTOR für Multi-Hop-Frage-Antwort-Aufgaben aktivieren.',
       prompt: 'Prompt',
       promptTip:
         'Verwenden Sie den Systemprompt, um die Aufgabe für das LLM zu beschreiben, festzulegen, wie es antworten soll, und andere verschiedene Anforderungen zu skizzieren. Der Systemprompt wird oft in Verbindung mit Schlüsseln (Variablen) verwendet, die als verschiedene Dateninputs für das LLM dienen. Verwenden Sie einen Schrägstrich `/` oder die (x)-Schaltfläche, um die zu verwendenden Schlüssel anzuzeigen.',
@@ -665,7 +665,7 @@ Das oben Genannte ist der Inhalt, den Sie zusammenfassen müssen.`,
       vietnamese: 'Vietnamesisch',
       pageRank: 'PageRank',
       pageRankTip:
-        'Sie können während des Abrufs bestimmten Wissensdatenbanken eine höhere PageRank-Bewertung zuweisen. Die entsprechende Bewertung wird zu den hybriden Ähnlichkeitswerten der abgerufenen Chunks aus diesen Wissensdatenbanken addiert, wodurch deren Ranking erhöht wird. Weitere Informationen finden Sie unter https://ragflow.io/docs/dataset_configuration#basic-information.',
+ 'Sie können während des Abrufs bestimmten Wissensdatenbanken eine höhere PageRank-Bewertung zuweisen. Die entsprechende Bewertung wird zu den hybriden Ähnlichkeitswerten der abgerufenen Chunks aus diesen Wissensdatenbanken addiert, wodurch deren Ranking erhöht wird.',
       tagName: 'Tag',
       frequency: 'Häufigkeit',
       searchTags: 'Tags durchsuchen',
@@ -682,14 +682,13 @@ Diese Auto-Tag-Funktion verbessert den Abruf, indem sie eine weitere Schicht dom
   <li>Sie müssen Tag-Sets in bestimmten Formaten hochladen, bevor Sie die Auto-Tag-Funktion ausführen.</li>
   <li>Die Auto-Schlüsselwort-Funktion ist vom LLM abhängig und verbraucht eine erhebliche Anzahl an Tokens.</li>
 </ul>
-<p>Siehe https://ragflow.io/docs/dataset_configuration#basic-information für Details.</p>
       `,
       topnTags: 'Top-N Tags',
       tags: 'Tags',
       addTag: 'Tag hinzufügen',
       useGraphRag: 'Wissensgraph extrahieren',
       useGraphRagTip:
-        'Erstellen Sie einen Wissensgraph über Dateiabschnitte der aktuellen Wissensbasis, um die Beantwortung von Fragen mit mehreren Schritten und verschachtelter Logik zu verbessern. Weitere Informationen finden Sie unter https://ragflow.io/docs/knowledge_compilation/built_in_templates_and_dedicated_configuration#graph.',
+ 'Erstellen Sie einen Wissensgraph über Dateiabschnitte der aktuellen Wissensbasis, um die Beantwortung von Fragen mit mehreren Schritten und verschachtelter Logik zu verbessern.',
       graphRagMethod: 'Methode',
       graphRagMethodTip: `
       Light: (Standard) Verwendet von github.com/HKUDS/LightRAG bereitgestellte Prompts, um Entitäten und Beziehierungen zu extrahieren. Diese Option verbraucht weniger Tokens, weniger Speicher und weniger Rechenressourcen.</br>
@@ -794,7 +793,7 @@ Diese Auto-Tag-Funktion verbessert den Abruf, indem sie eine weitere Schicht dom
         'Nicht alle Chunks mit einem Ähnlichkeitswert über dem "Ähnlichkeitsschwellenwert" werden an das LLM gesendet. Dies wählt die "Top N" Chunks aus den abgerufenen aus.',
       variable: 'Variable',
       variableTip:
-        'In Kombination mit den APIs zur Verwaltung von Chat-Assistenten von RAGFlow können Variablen dazu beitragen, flexiblere System-Prompt-Strategien zu entwickeln. Die definierten Variablen werden von „System-Prompt“ als Teil der Prompts für das LLM verwendet. {knowledge} ist eine spezielle reservierte Variable, die Teile darstellt, die aus den angegebenen Wissensbasen abgerufen werden, und alle Variablen sollten in geschweiften Klammern {} im „System-Prompt“ eingeschlossen werden. Weitere Informationen finden Sie unter https://ragflow.io/docs/chat_configuration#system-prompt.',
+ 'In Kombination mit den APIs zur Verwaltung von Chat-Assistenten von KRAG können Variablen dazu beitragen, flexiblere System-Prompt-Strategien zu entwickeln. Die definierten Variablen werden von „System-Prompt“ als Teil der Prompts für das LLM verwendet. {knowledge} ist eine spezielle reservierte Variable, die Teile darstellt, die aus den angegebenen Wissensbasen abgerufen werden, und alle Variablen sollten in geschweiften Klammern {} im „System-Prompt“ eingeschlossen werden.',
       add: 'Hinzufügen',
       key: 'Schlüssel',
       optional: 'Optional',
@@ -865,7 +864,7 @@ Diese Auto-Tag-Funktion verbessert den Abruf, indem sie eine weitere Schicht dom
       extensionTitle: 'Chrome-Erweiterung',
       tokenError: 'Bitte erstellen Sie zuerst einen API-SCHLÜSSEL.',
       betaError:
-        'Bitte erwerben Sie zuerst einen RAGFlow-API-SCHLÜSSEL auf der Systemeinstellungsseite.',
+        'Bitte erwerben Sie zuerst einen KRAG-API-SCHLÜSSEL auf der Systemeinstellungsseite.',
       searching: 'Suche...',
       parsing: 'Analysiere',
       uploading: 'Hochladen',
@@ -880,7 +879,6 @@ Diese Auto-Tag-Funktion verbessert den Abruf, indem sie eine weitere Schicht dom
       multiTurn: 'Mehrfach-Runden-Optimierung',
       multiTurnTip:
         'Dies optimiert Benutzeranfragen unter Verwendung des Kontexts in einer mehrrundigen Unterhaltung. Wenn aktiviert, werden zusätzliche LLM-Tokens verbraucht.',
-      howUseId: 'Wie verwendet man die Chat-ID?',
       description: 'Beschreibung des Assistenten',
       descriptionPlaceholder: 'z.B. Ein Chat-Assistent für Lebensläufe.',
       useKnowledgeGraph: 'Wissensgraph verwenden',
@@ -1217,19 +1215,19 @@ Beispiel: Virtual Hosted Style`,
         'Das Standard-Chat-LLM, das alle neu erstellten Wissensdatenbanken verwenden werden.',
       embeddingModel: 'Embedding-Modell',
       embeddingModelTip:
-        'Das Standard-Einbettungsmodell für jede neu erstellte Wissensdatenbank. Wenn Sie kein Einbettungsmodell in der Dropdown-Liste finden, prüfen Sie, ob Sie die RAGFlow Slim Edition verwenden (die keine Einbettungsmodelle enthält), oder überprüfen Sie https://ragflow.io/docs/dev/supported_models, um zu sehen, ob Ihr Modellanbieter dieses Modell unterstützt.',
+ 'Das Standard-Einbettungsmodell für jede neu erstellte Wissensdatenbank.',
       img2txtModel: 'Img2txt-Modell',
       img2txtModelTip:
-        'Das Standardmodell img2txt für jede neu erstellte Wissensdatenbank. Es beschreibt ein Bild oder Video. Wenn Sie kein Modell im Dropdown-Menü finden können, überprüfen Sie https://ragflow.io/docs/dev/supported_models, um zu sehen, ob Ihr Modellanbieter dieses Modell unterstützt.',
+ 'Das Standardmodell img2txt für jede neu erstellte Wissensdatenbank. Es beschreibt ein Bild oder Video.',
       sequence2txtModel: 'Sequence2txt-Modell',
       sequence2txtModelTip:
-        'Das Standard-ASR-Modell, das alle neu erstellten Wissensdatenbanken verwenden werden. Verwenden Sie dieses Modell, um Stimmen in entsprechenden Text zu übersetzen. Wenn Sie kein Modell im Dropdown-Menü finden können, überprüfen Sie https://ragflow.io/docs/dev/supported_models, um zu sehen, ob Ihr Modellanbieter dieses Modell unterstützt.',
+ 'Das Standard-ASR-Modell, das alle neu erstellten Wissensdatenbanken verwenden werden. Verwenden Sie dieses Modell, um Stimmen in entsprechenden Text zu übersetzen.',
       rerankModel: 'Rerank-Modell',
       rerankModelTip:
-        'Das Standard-Rerank-Modell zum Reranking von Textabschnitten. Wenn Sie kein Modell im Dropdown-Menü finden, überprüfen Sie https://ragflow.io/docs/dev/supported_models, um zu sehen, ob Ihr Modellanbieter dieses Modell unterstützt.',
+ 'Das Standard-Rerank-Modell zum Reranking von Textabschnitten.',
       ttsModel: 'TTS-Modell',
       ttsModelTip:
-        'Das Standard-Text-to-Speech-Modell. Wenn Sie kein Modell im Dropdown-Menü finden, überprüfen Sie https://ragflow.io/docs/dev/supported_models, um zu sehen, ob Ihr Modellanbieter dieses Modell unterstützt.',
+ 'Das Standard-Text-to-Speech-Modell.',
       workspace: 'Arbeitsbereich',
       upgrade: 'Upgrade',
       addLlmTitle: 'LLM hinzufügen',
@@ -1454,7 +1452,7 @@ Beispiel: Virtual Hosted Style`,
       directory: 'Verzeichnis',
       uploadTitle: 'Ziehen Sie Ihre Datei hierher, um sie hochzuladen',
       uploadDescription:
-        'RAGFlow unterstützt das Hochladen von Dateien einzeln oder in Batches. Für lokal bereitgestelltes RAGFlow: Die maximale Dateigröße pro Upload beträgt 1 GB, mit einem Batch-Upload-Limit von 32 Dateien. Es gibt keine Begrenzung der Gesamtanzahl an Dateien pro Konto. Für cloud.ragflow.io: Die maximale Dateigröße pro Upload beträgt 10 MB, wobei jede Datei nicht größer als 10 MB sein darf und maximal 128 Dateien pro Konto erlaubt sind.',
+        'KRAG unterstützt das Hochladen von Dateien einzeln oder in Batches. Für lokal bereitgestelltes KRAG: Die maximale Dateigröße pro Upload beträgt 1 GB, mit einem Batch-Upload-Limit von 32 Dateien. Es gibt keine Begrenzung der Gesamtanzahl an Dateien pro Konto. Für cloud.krag.io: Die maximale Dateigröße pro Upload beträgt 10 MB, wobei jede Datei nicht größer als 10 MB sein darf und maximal 128 Dateien pro Konto erlaubt sind.',
       local: 'Lokale Uploads',
       s3: 'S3-Uploads',
       preview: 'Vorschau',
@@ -1982,7 +1980,6 @@ Beispiel: Virtual Hosted Style`,
       input: 'Eingabe',
       output: 'Ausgabe',
       parameter: 'Parameter',
-      howUseId: 'Wie verwendet man die Agenten-ID?',
       content: 'Inhalt',
       operationResults: 'Operationsergebnisse',
       autosaved: 'Automatisch gespeichert',
@@ -2551,7 +2548,7 @@ Wichtige strukturierte Informationen können sein: Namen, Daten, Orte, Ereigniss
     },
     admin: {
       loginTitle: 'Admin-Konsole',
-      title: 'RAGFlow',
+      title: 'KRAG',
       confirm: 'Bestätigen',
       close: 'Schließen',
       yes: 'Ja',

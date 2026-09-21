@@ -482,7 +482,7 @@ Esempio: un messaggio di 1 KB con embedding a 1024 dimensioni usa ~9 KB. Il limi
       testSetting: 'Impostazioni',
       retrievalTesting: 'Test di recupero',
       retrievalTestingDescription:
-        'Esegui un test di recupero per verificare se RAGFlow riesce a recuperare il contenuto previsto per il LLM.',
+        'Esegui un test di recupero per verificare se KRAG riesce a recuperare il contenuto previsto per il LLM.',
       Parse: 'Analizza',
       dataset: 'Dataset',
       testing: 'Test di recupero',
@@ -507,7 +507,7 @@ Esempio: un messaggio di 1 KB con embedding a 1024 dimensioni usa ~9 KB. Il limi
       action: 'Azione',
       parsingStatus: 'Stato analisi',
       parsingStatusTip:
-        'Il tempo di analisi del documento varia in base a diversi fattori. Abilitare funzionalità come Knowledge Graph, RAPTOR, Estrazione automatica domande o Estrazione automatica parole chiave aumenterà significativamente il tempo di elaborazione. Se la barra di avanzamento si blocca, consulta queste due FAQ: https://ragflow.io/docs/dev/faq#why-does-my-document-parsing-stall-at-under-one-percent.',
+ 'Il tempo di analisi del documento varia in base a diversi fattori. Abilitare funzionalità come Knowledge Graph, RAPTOR, Estrazione automatica domande o Estrazione automatica parole chiave aumenterà significativamente il tempo di elaborazione.',
       processBeginAt: 'Inizia alle',
       processDuration: 'Durata',
       progressMsg: 'Progresso',
@@ -516,10 +516,10 @@ Esempio: un messaggio di 1 KB con embedding a 1024 dimensioni usa ~9 KB. Il limi
       noTestResultsForNotRuned:
         'Nessun test eseguito. I risultati appariranno qui.',
       testingDescription:
-        'Esegui un test di recupero per verificare se RAGFlow riesce a recuperare il contenuto previsto per il LLM. Se hai modificato le impostazioni predefinite, come il peso della similarità delle parole chiave o la soglia di similarità, per ottenere i risultati ottimali, tieni presente che queste modifiche non saranno salvate automaticamente. Devi applicarle alle impostazioni del tuo assistente chat o alle impostazioni del componente agente Recupero.',
+        'Esegui un test di recupero per verificare se KRAG riesce a recuperare il contenuto previsto per il LLM. Se hai modificato le impostazioni predefinite, come il peso della similarità delle parole chiave o la soglia di similarità, per ottenere i risultati ottimali, tieni presente che queste modifiche non saranno salvate automaticamente. Devi applicarle alle impostazioni del tuo assistente chat o alle impostazioni del componente agente Recupero.',
       similarityThreshold: 'Soglia di similarità',
       similarityThresholdTip:
-        'Durante il recupero, RAGFlow utilizza una combinazione di similarità ponderata delle parole chiave e similarità coseno vettoriale ponderata oppure, quando è selezionato un modello di reranking, una combinazione di similarità ponderata delle parole chiave e punteggio di reranking ponderato. Questo parametro imposta la soglia di similarità tra la query dell’utente e i chunk. Qualsiasi chunk con un punteggio di similarità inferiore a questa soglia sarà escluso dai risultati. Per impostazione predefinita, la soglia è impostata su 20. Ciò significa che verranno recuperati solo i chunk con un punteggio di similarità ibrida pari o superiore a 20. Se il peso della similarità vettoriale è impostato su 0, questa soglia non si applica.',
+        'Durante il recupero, KRAG utilizza una combinazione di similarità ponderata delle parole chiave e similarità coseno vettoriale ponderata oppure, quando è selezionato un modello di reranking, una combinazione di similarità ponderata delle parole chiave e punteggio di reranking ponderato. Questo parametro imposta la soglia di similarità tra la query dell’utente e i chunk. Qualsiasi chunk con un punteggio di similarità inferiore a questa soglia sarà escluso dai risultati. Per impostazione predefinita, la soglia è impostata su 20. Ciò significa che verranno recuperati solo i chunk con un punteggio di similarità ibrida pari o superiore a 20. Se il peso della similarità vettoriale è impostato su 0, questa soglia non si applica.',
       vectorSimilarityWeight: 'Peso similarità vettoriale',
       vectorSimilarityWeightTip:
         'Imposta il peso della similarità vettoriale nel punteggio di similarità combinato, usato con la similarità coseno vettoriale o con il punteggio di reranking. Il totale dei due pesi deve essere uguale a 1.0.',
@@ -564,14 +564,14 @@ Esempio: un messaggio di 1 KB con embedding a 1024 dimensioni usa ~9 KB. Il limi
       changeSpecificCategory: 'Cambia categoria specifica',
       uploadTitle: 'Trascina e rilascia il tuo file qui per caricarlo',
       uploadDescription:
-        "Supporta caricamento singolo o multiplo. Per un RAGFlow distribuito localmente: il limite di dimensione totale dei file per caricamento è 1GB, con un limite batch di 32 file. Non c'è limite al numero totale di file per account. Per cloud.ragflow.io, il limite di dimensione totale dei file per caricamento è 10MB, con ogni file non superiore a 10MB e un massimo di 128 file per account.",
+        "Supporta caricamento singolo o multiplo. Per un KRAG distribuito localmente: il limite di dimensione totale dei file per caricamento è 1GB, con un limite batch di 32 file. Non c'è limite al numero totale di file per account. Per cloud.krag.io, il limite di dimensione totale dei file per caricamento è 10MB, con ogni file non superiore a 10MB e un massimo di 128 file per account.",
       chunk: 'Chunk',
       bulk: 'Multiplo',
       cancel: 'Annulla',
       close: 'Chiudi',
       rerankModel: 'Modello rerank',
       rerankPlaceholder: 'Seleziona valore',
-      rerankTip: `Opzionale. Se lasciato vuoto, RAGFlow userà una combinazione di similarità delle parole chiave ponderata e similarità coseno vettoriale ponderata; se viene selezionato un modello rerank, un punteggio di reranking ponderato sostituirà la similarità coseno vettoriale ponderata. Tieni presente che l'uso di un modello rerank aumenterà significativamente il tempo di risposta del sistema.`,
+      rerankTip: `Opzionale. Se lasciato vuoto, KRAG userà una combinazione di similarità delle parole chiave ponderata e similarità coseno vettoriale ponderata; se viene selezionato un modello rerank, un punteggio di reranking ponderato sostituirà la similarità coseno vettoriale ponderata. Tieni presente che l'uso di un modello rerank aumenterà significativamente il tempo di risposta del sistema.`,
       topK: 'Top-K',
       topKTip: `Usato insieme al modello Rerank, questa impostazione definisce il numero di chunk di testo da inviare al modello di reranking specificato.`,
       delimiter: `Delimitatore per testo`,
@@ -583,11 +583,11 @@ Esempio: un messaggio di 1 KB con embedding a 1024 dimensioni usa ~9 KB. Il limi
         'Un delimitatore può consistere in uno o più caratteri speciali. Se sono più caratteri, assicurati che siano racchiusi tra backtick (``). Ad esempio, se configuri i tuoi delimitatori così: \\n`##`;, i tuoi testi saranno separati a interruzioni di riga, doppio cancelletto (##) e punto e virgola.',
 
       html4excel: 'Excel in HTML',
-      html4excelTip: `Usa con il metodo di chunking Generale. Quando disabilitato, i fogli di calcolo (XLSX o XLS (Excel 97-2003)) nel dataset saranno analizzati in coppie chiave-valore. Quando abilitato, saranno analizzati in tabelle HTML, dividendo ogni 12 righe se la tabella originale ha più di 12 righe. Vedi https://ragflow.io/docs/dataset_configuration#other-format-processing-configuration per i dettagli.`,
+ html4excelTip: `Usa con il metodo di chunking Generale. Quando disabilitato, i fogli di calcolo (XLSX o XLS (Excel 97-2003)) nel dataset saranno analizzati in coppie chiave-valore. Quando abilitato, saranno analizzati in tabelle HTML, dividendo ogni 12 righe se la tabella originale ha più di 12 righe.`,
       autoKeywords: 'Parole chiave automatiche',
-      autoKeywordsTip: `Estrai automaticamente N parole chiave per ogni chunk per aumentare il loro ranking per le query contenenti quelle parole chiave. Tieni presente che saranno consumati token extra dal modello di indicizzazione specificato in 'Configurazione'. Puoi controllare o aggiornare le parole chiave aggiunte per un chunk dalla lista dei chunk. Per i dettagli, vedi https://ragflow.io/docs/dataset_configuration#content-enhancement-configuration.`,
+ autoKeywordsTip: `Estrai automaticamente N parole chiave per ogni chunk per aumentare il loro ranking per le query contenenti quelle parole chiave. Tieni presente che saranno consumati token extra dal modello di indicizzazione specificato in 'Configurazione'. Puoi controllare o aggiornare le parole chiave aggiunte per un chunk dalla lista dei chunk.`,
       autoQuestions: 'Domande automatiche',
-      autoQuestionsTip: `Estrai automaticamente N domande per ogni chunk per aumentare il loro ranking per le query contenenti quelle domande. Puoi controllare o aggiornare le domande aggiunte per un chunk dalla lista dei chunk. Questa funzionalità non interromperà il processo di chunking se si verifica un errore, eccetto che potrebbe aggiungere un risultato vuoto al chunk originale. Tieni presente che saranno consumati token extra dal modello di indicizzazione specificato in 'Configurazione'. Per i dettagli, vedi https://ragflow.io/docs/dataset_configuration#content-enhancement-configuration.`,
+ autoQuestionsTip: `Estrai automaticamente N domande per ogni chunk per aumentare il loro ranking per le query contenenti quelle domande. Puoi controllare o aggiornare le domande aggiunte per un chunk dalla lista dei chunk. Questa funzionalità non interromperà il processo di chunking se si verifica un errore, eccetto che potrebbe aggiungere un risultato vuoto al chunk originale. Tieni presente che saranno consumati token extra dal modello di indicizzazione specificato in 'Configurazione'.`,
       redo: 'Vuoi cancellare i {{chunkNum}} chunk esistenti?',
       setMetaData: 'Imposta metadati',
       pleaseInputJson: 'Inserisci JSON',
@@ -729,7 +729,7 @@ Esempio: un messaggio di 1 KB con embedding a 1024 dimensioni usa ~9 KB. Il limi
       tableColumnModeAuto: 'Auto',
       tableColumnModeManual: 'Manuale',
       tableColumnModeAutoDescription:
-        'Tutte le colonne sono incluse nel testo del chunk e memorizzate come metadati (predefinito RAGFlow).',
+        'Tutte le colonne sono incluse nel testo del chunk e memorizzate come metadati (predefinito KRAG).',
       tableColumnRoles: 'Ruoli colonna',
       tableColumnRolesTip:
         'Scegli quali colonne includere nel testo del chunk (indicizzate per la ricerca vettoriale e full-text), solo nei metadati (filtrabili), o entrambi. Le modifiche si applicano alle nuove analisi; rianalizza i documenti esistenti affinché i ruoli abbiano effetto.',
@@ -863,7 +863,7 @@ Esempio: un messaggio di 1 KB con embedding a 1024 dimensioni usa ~9 KB. Il limi
 `,
       useRaptor: 'RAPTOR',
       useRaptorTip:
-        'RAPTOR può essere usato per attività di question-answering multi-hop. Naviga alla pagina File, clicca Genera > RAPTOR per abilitarlo. Vedi https://ragflow.io/docs/knowledge_compilation/built_in_templates_and_dedicated_configuration#tree per i dettagli.',
+ 'RAPTOR può essere usato per attività di question-answering multi-hop. Naviga alla pagina File, clicca Genera > RAPTOR per abilitarlo.',
       prompt: 'Prompt',
       promptTip:
         "Usa il prompt di sistema per descrivere il compito per l'LLM, specificare come dovrebbe rispondere e delineare altri requisiti vari. Il prompt di sistema è spesso usato insieme a chiavi (variabili), che servono come vari input di dati per l'LLM. Usa una barra `/` o il pulsante (x) per mostrare le chiavi da usare.",
@@ -892,7 +892,7 @@ Quanto sopra è il contenuto che devi riassumere.`,
       entityTypes: 'Tipi di entità',
       vietnamese: 'Vietnamita',
       pageRank: 'Page rank',
-      pageRankTip: `Puoi assegnare un punteggio PageRank più alto a specifici dataset durante il recupero. Il punteggio corrispondente viene aggiunto ai punteggi di similarità ibrida dei chunk recuperati da questi dataset, aumentando il loro ranking. Vedi https://ragflow.io/docs/dataset_configuration#basic-information per i dettagli.`,
+ pageRankTip: `Puoi assegnare un punteggio PageRank più alto a specifici dataset durante il recupero. Il punteggio corrispondente viene aggiunto ai punteggi di similarità ibrida dei chunk recuperati da questi dataset, aumentando il loro ranking.`,
       tagName: 'Tag',
       frequency: 'Frequenza',
       searchTags: 'Cerca tag',
@@ -900,7 +900,7 @@ Quanto sopra è il contenuto che devi riassumere.`,
       tagTable: 'Tabella',
       tagSet: 'Set di tag',
       tagSetTip: `
-     <p> Seleziona uno o più dataset tag per auto-taggare i chunk nel tuo dataset. Vedi https://ragflow.io/docs/dataset_configuration#basic-information per i dettagli.</p>
+ <p> Seleziona uno o più dataset tag per auto-taggare i chunk nel tuo dataset.</p>
 <p>Anche la query dell'utente sarà auto-taggata.</p>
 Questa funzionalità di auto-tagging migliora il recupero aggiungendo un ulteriore livello di conoscenza specifica del dominio al dataset esistente.
 <p>Differenza tra auto-tag e auto-keyword:</p>
@@ -915,7 +915,7 @@ Questa funzionalità di auto-tagging migliora il recupero aggiungendo un ulterio
       addTag: 'Aggiungi tag',
       useGraphRag: 'Grafo della conoscenza',
       useGraphRagTip:
-        'Costruisci un grafo della conoscenza sui chunk di file del dataset corrente per migliorare il question-answering multi-hop che coinvolge logica annidata. Vedi https://ragflow.io/docs/knowledge_compilation/built_in_templates_and_dedicated_configuration#graph per i dettagli.',
+ 'Costruisci un grafo della conoscenza sui chunk di file del dataset corrente per migliorare il question-answering multi-hop che coinvolge logica annidata.',
       graphRagMethod: 'Metodo',
       graphRagMethodTip: `
       Light: (Predefinito) Usa prompt forniti da github.com/HKUDS/LightRAG per estrarre entità e relazioni. Questa opzione consuma meno token, meno memoria e meno risorse computazionali.</br>
@@ -1033,7 +1033,7 @@ Questa funzionalità di auto-tagging migliora il recupero aggiungendo un ulterio
       topN: 'Top N',
       topNTip: `Non tutti i chunk con punteggio di similarità sopra la 'soglia di similarità' saranno inviati all'LLM. Questo seleziona 'Top N' chunk da quelli recuperati.`,
       variable: 'Variabile',
-      variableTip: `Usate insieme alle API di gestione dell'assistente chat di RAGFlow, le variabili possono aiutare a sviluppare strategie di prompt di sistema più flessibili. Le variabili definite saranno usate dal 'Prompt di sistema' come parte dei prompt per l'LLM. {knowledge} è una variabile speciale riservata che rappresenta i chunk recuperati dal/i dataset specificato/i, e tutte le variabili devono essere racchiuse tra parentesi graffe {} nel 'Prompt di sistema'. Vedi https://ragflow.io/docs/chat_configuration#system-prompt per i dettagli.`,
+ variableTip: `Usate insieme alle API di gestione dell'assistente chat di KRAG, le variabili possono aiutare a sviluppare strategie di prompt di sistema più flessibili. Le variabili definite saranno usate dal 'Prompt di sistema' come parte dei prompt per l'LLM. {knowledge} è una variabile speciale riservata che rappresenta i chunk recuperati dal/i dataset specificato/i, e tutte le variabili devono essere racchiuse tra parentesi graffe {} nel 'Prompt di sistema'.`,
       add: 'Aggiungi',
       key: 'Chiave',
       optional: 'Opzionale',
@@ -1114,7 +1114,7 @@ Questa funzionalità di auto-tagging migliora il recupero aggiungendo un ulterio
       extensionTitle: 'Estensione Chrome',
       tokenError: 'Per favore crea prima la chiave API.',
       betaError:
-        'Per favore acquisisci prima una chiave API RAGFlow dalla pagina Impostazioni di sistema.',
+        'Per favore acquisisci prima una chiave API KRAG dalla pagina Impostazioni di sistema.',
       searching: 'Ricerca in corso...',
       parsing: 'Analisi',
       uploading: 'Caricamento',
@@ -1129,7 +1129,6 @@ Questa funzionalità di auto-tagging migliora il recupero aggiungendo un ulterio
       multiTurn: 'Ottimizzazione multi-turno',
       multiTurnTip:
         'Questo ottimizza le query utente usando il contesto in una conversazione multi-round. Quando abilitato, consumerà token LLM aggiuntivi.',
-      howUseId: "Come usare l'ID chat?",
       description: "Descrizione dell'assistente",
       descriptionPlaceholder: 'Sono un assistente chat.',
       useKnowledgeGraph: 'Usa grafo della conoscenza',
@@ -1592,18 +1591,18 @@ Esempio: Virtual Hosted Style`,
       chatModelTip: 'Il LLM predefinito per ogni nuovo dataset creato.',
       embeddingModel: 'Embedding',
       embeddingModelTip:
-        'Il modello di embedding predefinito per ogni nuovo dataset creato. Se non riesci a trovare un modello di embedding dal menu a discesa, controlla se stai usando la versione slim di RAGFlow (che non include modelli di embedding) o controlla https://ragflow.io/docs/dev/supported_models per vedere se il tuo fornitore di modelli supporta questo modello.',
+ 'Il modello di embedding predefinito per ogni nuovo dataset creato.',
       img2txtModel: 'VLM',
       img2txtModelTip:
-        "Il VLM predefinito per ogni nuovo dataset creato. Descrive un'immagine o un video. Se non riesci a trovare un modello dal menu a discesa, controlla https://ragflow.io/docs/dev/supported_models per vedere se il tuo fornitore di modelli supporta questo modello.",
+ "Il VLM predefinito per ogni nuovo dataset creato. Descrive un'immagine o un video.",
       sequence2txtModel: 'ASR',
       sequence2txtModelTip:
         'Il modello ASR predefinito per ogni nuovo dataset creato. Usa questo modello per tradurre le voci in testo corrispondente.',
       rerankModel: 'Rerank',
-      rerankModelTip: `Il modello rerank predefinito per il reranking dei chunk. Se non riesci a trovare un modello dal menu a discesa, controlla https://ragflow.io/docs/dev/supported_models per vedere se il tuo fornitore di modelli supporta questo modello.`,
+ rerankModelTip: `Il modello rerank predefinito per il reranking dei chunk.`,
       ttsModel: 'TTS',
       ttsModelTip:
-        'Il modello text-to-speech predefinito. Se non riesci a trovare un modello dal menu a discesa, controlla https://ragflow.io/docs/dev/supported_models per vedere se il tuo fornitore di modelli supporta questo modello.',
+ 'Il modello text-to-speech predefinito.',
       workspace: 'workspace',
       upgrade: 'Aggiorna',
       addLlmTitle: 'Aggiungi LLM',
@@ -1833,7 +1832,7 @@ Esempio: Virtual Hosted Style`,
       directory: 'Directory',
       uploadTitle: 'Trascina e rilascia il tuo file qui per caricarlo',
       uploadDescription:
-        "Supporta caricamento singolo o multiplo. Per un RAGFlow distribuito localmente: il limite di dimensione totale dei file per caricamento è 1GB, con un limite batch di 32 file. Non c'è limite al numero totale di file per account. Per cloud.ragflow.io, il limite di dimensione totale dei file per caricamento è 10MB, con ogni file non superiore a 10MB e un massimo di 128 file per account.",
+        "Supporta caricamento singolo o multiplo. Per un KRAG distribuito localmente: il limite di dimensione totale dei file per caricamento è 1GB, con un limite batch di 32 file. Non c'è limite al numero totale di file per account. Per cloud.krag.io, il limite di dimensione totale dei file per caricamento è 10MB, con ogni file non superiore a 10MB e un massimo di 128 file per account.",
       local: 'Caricamenti locali',
       s3: 'Caricamenti S3',
       preview: 'Anteprima',
@@ -2402,7 +2401,6 @@ Ideale per: documenti con contenuto fluente e contestualmente connesso — come 
       input: 'Input',
       output: 'Output',
       parameter: 'Parametro',
-      howUseId: "Come usare l'ID agente?",
       content: 'Contenuto',
       operationResults: 'Risultati operazione',
       autosaved: 'Salvato automaticamente',
@@ -3001,7 +2999,7 @@ Le informazioni strutturate importanti possono includere: nomi, date, luoghi, ev
 
     admin: {
       loginTitle: 'Console admin',
-      title: 'RAGFlow',
+      title: 'KRAG',
       confirm: 'Conferma',
       close: 'Chiudi',
       yes: 'Sì',
