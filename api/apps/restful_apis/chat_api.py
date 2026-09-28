@@ -26,6 +26,7 @@ from types import SimpleNamespace
 from quart import Response, request
 from werkzeug.exceptions import BadRequest
 
+from api.utils.model_tenant import model_tenant_scope
 from api.apps import current_user, login_required
 from api.apps.restful_apis._generation_params import merge_generation_config, pop_generation_config
 from api.db.services.llm_service import resolve_llm_setting
@@ -1091,16 +1092,17 @@ async def update_message_feedback(chat_id, session_id, msg_id):
 
 @manager.route("/chat/audio/speech", methods=["POST"])  # noqa: F821
 @login_required
-async def tts():
+@model_tenant_scope()
+async def tts(tenant_id):
     req = await get_request_json()
     text = req["text"]
 
     try:
-        default_tts_model_config = get_tenant_default_model_by_type(current_user.id, LLMType.TTS)
+        default_tts_model_config = get_tenant_default_model_by_type(tenant_id, LLMType.TTS)
     except Exception as e:
         return get_data_error_result(message=str(e))
 
-    tts_mdl = LLMBundle(current_user.id, default_tts_model_config)
+    tts_mdl = LLMBundle(tenant_id, default_tts_model_config)
 
     def stream_audio():
         try:

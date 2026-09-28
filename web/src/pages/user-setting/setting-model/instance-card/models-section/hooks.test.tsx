@@ -39,7 +39,7 @@ function mockInstanceModelsKey(providerName: string, instanceName: string) {
 }
 
 jest.mock('@/hooks/use-llm-request', () => ({
-  LlmKeys: { instanceModels: mockInstanceModelsKey },
+  createLlmKeys: () => ({ instanceModels: mockInstanceModelsKey }),
   useAddInstanceModel: () => ({ addInstanceModel: jest.fn() }),
   useDeleteInstanceModels: () => ({ deleteInstanceModels: jest.fn() }),
   useListProviderModels: () => ({
@@ -58,6 +58,10 @@ jest.mock('@/hooks/use-llm-request', () => ({
   }),
 }));
 
+jest.mock('@/hooks/use-model-tenant', () => ({
+  useModelTenant: () => ({ tenantId: 'team-1', ready: true }),
+}));
+
 jest.mock('@/components/dynamic-form', () => ({}));
 
 jest.mock('../../provider-schema/hooks', () => ({
@@ -70,7 +74,7 @@ jest.mock('../use-custom-model-fields', () => ({
 
 jest.mock('@/services/llm-service', () => ({
   __esModule: true,
-  default: { verifyProviderConnection: jest.fn() },
+  llmServiceForTenant: () => ({ verifyProviderConnection: jest.fn() }),
 }));
 
 jest.mock('../available-models', () => ({

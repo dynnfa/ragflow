@@ -18,7 +18,7 @@ import Spotlight from '@/components/spotlight';
 import message from '@/components/ui/message';
 import { useTranslate } from '@/hooks/common-hooks';
 import {
-  LlmKeys,
+  createLlmKeys,
   useAddProviderInstance,
   useFetchAddedProviders,
   useFetchProviderInstances,
@@ -33,6 +33,9 @@ import { ProviderInstanceCard } from './instance-card/provider-instance-card';
 import { ProviderHeaderBar } from './layout/provider-header-bar';
 import { Sidebar, SidebarSelection } from './layout/sidebar';
 import SystemSetting from './layout/system-setting';
+import { useModelTenant } from '@/hooks/use-model-tenant';
+import { useTranslation } from 'react-i18next';
+import { TeamModels } from './team-models';
 
 /**
  * Sidebar-driven model provider settings page.
@@ -58,7 +61,9 @@ import SystemSetting from './layout/system-setting';
  *  - All other providers (including SoMark) use the generic
  *    `GenericProviderInstanceCard` path.
  */
-const SettingModelV2: FC = () => {
+const ModelConfiguration: FC = () => {
+  const { tenantId } = useModelTenant();
+  const LlmKeys = useMemo(() => createLlmKeys(tenantId), [tenantId]);
   const { t: tSetting } = useTranslate('setting');
   const [selection, setSelection] = useState<SidebarSelection>('default');
   // Stack of draft-instance identifiers, rendered as `ProviderInstanceCard`
@@ -255,6 +260,7 @@ const SettingModelV2: FC = () => {
     providerQueryName,
     instances,
     tSetting,
+    LlmKeys,
   ]);
 
   // Whether the Save button should be enabled. We avoid an O(n) ref
@@ -350,4 +356,40 @@ const SettingModelV2: FC = () => {
   );
 };
 
-export default SettingModelV2;
+function SettingModel() {
+  const { t } = useTranslation();
+  const { teams, tenantId, ready, canManage, selectTenant } = useModelTenant();
+  const handleTeamChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    selectTenant(event.target.value);
+  };
+
+  return (
+    <div className="flex h-full min-h-0 w-full flex-col gap-4">
+      <label className="flex shrink-0 items-center gap-3 text-sm text-text-primary">
+        {t('setting.modelTeam')}
+        <select
+          value={tenantId ?? ''}
+          onChange={handleTeamChange}
+          disabled={!ready}
+          className="rounded-md border border-border-button bg-bg-base px-3 py-2"
+        >
+          {teams.map((team) => (
+            <option key={team.tenant_id} value={team.tenant_id}>
+              {team.nickname || team.email || team.tenant_id}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="flex min-h-0 flex-1">
+        {ready &&
+          (canManage ? (
+            <ModelConfiguration key={tenantId} />
+          ) : (
+            <TeamModels key={tenantId} />
+          ))}
+      </div>
+    </div>
+  );
+}
+
+export default SettingModel;

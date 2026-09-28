@@ -1110,8 +1110,9 @@ NER：使用 spaCy NER 和基于规则的关键词提取来抽取 Entities 和 R
       regenerate: '重新生成',
       read: '朗读内容',
       tts: '文本转语音',
+      ttsModelRequired: '请选择文本转语音模型。',
       ttsTip:
-        '是否用语音转换播放语音，请先在设置里面选择 TTS（语音转换模型）。',
+        '使用所选的文本转语音模型朗读回复。',
       relatedQuestion: '相关问题',
       answerTitle: '智能回答',
       multiTurn: '多轮对话优化',
@@ -1193,6 +1194,9 @@ NER：使用 spaCy NER 和基于规则的关键词提取来抽取 Entities 和 R
       metadataFieldsTip: '选择每个块要显示的元数据字段',
     },
     setting: {
+      modelTeam: '模型配置所属团队',
+      teamModelsReadOnly:
+        '团队模型由团队创建者统一管理。你可以使用以下模型，无需单独配置。',
       Verify: '验证',
       keyValid: '你的 API 密钥有效。',
       keyInvalid: '你的 API 密钥无效。',

@@ -26,6 +26,7 @@ import { useEffect, useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { DynamicVariableForm } from './dynamic-variable';
+import { ChatTtsModel } from './chat-tts-model';
 
 interface ChatPromptEngineProps {
   prefix?: string;
@@ -136,6 +137,7 @@ export function ChatPromptEngine({
           label={t('chat.tts')}
           tooltip={t('chat.ttsTip')}
         ></SwitchFormField>
+        <ChatTtsModel prefix={prefix} />
         <WebSearchFormField prefix={prefix} />
         <MetadataFilter></MetadataFilter>
         <FormField

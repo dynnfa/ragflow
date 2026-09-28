@@ -98,7 +98,7 @@ func (h *ProviderHandler) ListProviders(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	ctx := c.Request.Context()
 
 	// list tenant providers
@@ -124,7 +124,7 @@ func (h *ProviderHandler) AddProvider(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	ctx := c.Request.Context()
 
 	errorCode, err := h.modelProviderService.AddModelProvider(ctx, req.ProviderName, userID)
@@ -143,7 +143,7 @@ func (h *ProviderHandler) DeleteProvider(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	ctx := c.Request.Context()
 
 	errorCode, err := h.modelProviderService.DeleteModelProvider(ctx, userID, providerName)
@@ -471,7 +471,7 @@ func (h *ProviderHandler) CreateProviderInstance(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	apiKey := normalizeAPIKey(req.APIKey)
 
 	// If the request body only contains "instance_name", create a name-only
@@ -503,7 +503,7 @@ func (h *ProviderHandler) ListProviderInstances(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	ctx := c.Request.Context()
 
 	instances, errorCode, err := h.modelProviderService.ListProviderInstances(ctx, providerName, userID)
@@ -528,7 +528,7 @@ func (h *ProviderHandler) ShowProviderInstance(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	ctx := c.Request.Context()
 
 	instance, errorCode, err := h.modelProviderService.ShowProviderInstance(ctx, providerName, instanceIDOrName, userID)
@@ -553,7 +553,7 @@ func (h *ProviderHandler) ShowInstanceBalance(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	ctx := c.Request.Context()
 
 	// Get tenant ID from user
@@ -580,7 +580,7 @@ func (h *ProviderHandler) CheckConnection(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	errCode, err := h.modelProviderService.CheckConnection(ctx, providerName, normalizeAPIKey(req.APIKey), req.Region, req.BaseURL, req.InstanceID, userID, req.ModelInfo)
 	if err != nil {
 		common.ErrorWithCode(c, errCode, err.Error())
@@ -603,7 +603,7 @@ func (h *ProviderHandler) CheckInstanceConnection(c *gin.Context) {
 		common.ResponseWithHttpCodeData(c, http.StatusBadRequest, 400, nil, "Instance name is required")
 		return
 	}
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 
 	instanceInfo, code, err := h.modelProviderService.ShowProviderInstance(ctx, providerName, instanceName, userID)
 	if err != nil {
@@ -639,7 +639,7 @@ func (h *ProviderHandler) ListTasks(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 
 	// Get tenant ID from user
 	listTaskResponse, errorCode, err := h.modelProviderService.ListTasks(ctx, providerName, instanceName, userID)
@@ -671,7 +671,7 @@ func (h *ProviderHandler) ShowTask(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 
 	// Get tenant ID from user
 	taskResponse, errorCode, err := h.modelProviderService.ShowTask(ctx, providerName, instanceName, taskID, userID)
@@ -711,7 +711,7 @@ func (h *ProviderHandler) AlterProviderInstance(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	if userID == "" {
 		common.ErrorWithCode(c, common.CodeUnauthorized, "Unauthorized")
 		return
@@ -742,7 +742,7 @@ func (h *ProviderHandler) DropProviderInstance(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	ctx := c.Request.Context()
 
 	code, err := h.modelProviderService.DropProviderInstances(ctx, providerName, userID, req.Instances)
@@ -777,7 +777,7 @@ func (h *ProviderHandler) ListInstanceModels(c *gin.Context) {
 	if keywords == "true" {
 		// list supported models
 
-		modelList, err := h.modelProviderService.ListSupportedModels(ctx, providerName, instanceName, c.GetString("user_id"))
+		modelList, err := h.modelProviderService.ListSupportedModels(ctx, providerName, instanceName, modelTenantID(c))
 		if err != nil {
 			common.ErrorWithCode(c, common.CodeServerError, err.Error())
 			return
@@ -787,7 +787,7 @@ func (h *ProviderHandler) ListInstanceModels(c *gin.Context) {
 		return
 	}
 
-	modelInstances, err := h.modelProviderService.ListInstanceModels(ctx, providerName, instanceName, c.GetString("user_id"))
+	modelInstances, err := h.modelProviderService.ListInstanceModels(ctx, providerName, instanceName, modelTenantID(c))
 	if err != nil {
 		common.ErrorWithCode(c, common.CodeNotFound, err.Error())
 		return
@@ -822,7 +822,7 @@ func (h *ProviderHandler) AlterModel(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	modelName := strings.TrimPrefix(c.Param("model_name"), "/")
 	modelName = strings.TrimSpace(modelName)
 	modelID := strings.TrimSpace(req.ModelID)
@@ -908,7 +908,7 @@ func (h *ProviderHandler) AddModel(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	ctx := c.Request.Context()
 
 	code, err := h.modelProviderService.AddModel(ctx, &req, userID)
@@ -946,7 +946,7 @@ func (h *ProviderHandler) DropInstanceModels(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
+	userID := modelTenantID(c)
 	ctx := c.Request.Context()
 
 	code, err := h.modelProviderService.DropInstanceModels(ctx, providerName, instanceName, userID, req.ModelNames)
@@ -1620,21 +1620,7 @@ func (h *ProviderHandler) ParseFile(c *gin.Context) {
 	common.SuccessWithData(c, response, "success")
 }
 
-// ListTenantAddedModels is the response handler for GET /api/v1/models.
-// It is the Go port of Python's
-// api/apps/restful_apis/models_api.py:get_added_models and feeds
-// web/src/hooks/use-llm-request.tsx → useFetchAllAddedModels. The data
-// shape is the array form (one row per (provider × instance × llm) with
-// model_type: string[]), matching the IAddedModel interface in
-// web/src/interfaces/database/llm.ts:64-71.
-//
-// The previous contract routed this path to TenantHandler.GetModels →
-// TenantService.ListTenantDefaultModels, which only enumerates the 6-7
-// default tenant fields and returned `[]` for any tenant without
-// defaults, breaking the front-end's "View Models" list. The Go port
-// has no writers for tenant_model, so this endpoint must be driven by
-// the factory catalog cross-referenced with the tenant's instance list —
-// see service.ModelProviderService.ListTenantAddedModels.
+// ListTenantAddedModels lists models in the selected team's provider instances.
 func (h *ProviderHandler) ListTenantAddedModels(c *gin.Context) {
 	user, errorCode, errorMessage := GetUser(c)
 	if errorCode != common.CodeSuccess {
@@ -1643,7 +1629,7 @@ func (h *ProviderHandler) ListTenantAddedModels(c *gin.Context) {
 	}
 
 	modelType := c.Query("type")
-	ownerTenantID := c.Query("owner_tenant_id")
+	ownerTenantID := modelTenantID(c)
 	ctx := c.Request.Context()
 
 	addedModels, code, err := h.modelProviderService.ListTenantAddedModels(ctx, user.ID, ownerTenantID, modelType)

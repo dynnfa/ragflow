@@ -1665,7 +1665,7 @@ func (s *ChatPipelineService) AsyncChatSolo(
 		var ttsModel *modelModule.ChatModel
 		if promptConfig != nil {
 			if useTTS, _ := promptConfig["tts"].(bool); useTTS {
-				target, ttsErr := s.ModelProviderSvc.modelSolver().ResolveDefaultModelConfig(ctx, chat.TenantID, entity.ModelTypeTTS)
+				target, ttsErr := s.resolveChatTTSModel(ctx, chat)
 				if ttsErr != nil || target == nil {
 					common.Warn("AsyncChatSolo: TTS lookup failed; proceeding without TTS",
 						zap.String("tenant_id", chat.TenantID),
@@ -2202,6 +2202,26 @@ func (s *ChatPipelineService) getLLMModelConfig(ctx context.Context, chat *entit
 	return cfg, modelName, factoryName, baseURL, nil
 }
 
+func (s *ChatPipelineService) resolveChatTTSModel(ctx context.Context, chat *entity.Chat) (*ModelTarget, error) {
+	modelID, _ := chat.PromptConfig["tts_model_id"].(string)
+	if modelID != "" {
+		return s.ModelProviderSvc.modelSolver().ResolveModelConfig(ctx, chat.TenantID, entity.ModelTypeTTS, modelID)
+	}
+	return s.ModelProviderSvc.modelSolver().ResolveDefaultModelConfig(ctx, chat.TenantID, entity.ModelTypeTTS)
+}
+
+func (s *ChatPipelineService) resolveChatModelTarget(ctx context.Context, chat *entity.Chat) (*ModelTarget, error) {
+	if chat.LLMID == "" {
+		return s.ModelProviderSvc.modelSolver().ResolveDefaultModelConfig(ctx, chat.TenantID, entity.ModelTypeChat)
+	}
+
+	modelType := entity.ModelTypeChat
+	if s.resolveChatModelType(ctx, chat.TenantID, chat.LLMID) == "image2text" {
+		modelType = entity.ModelTypeImage2Text
+	}
+	return s.ModelProviderSvc.modelSolver().ResolveModelConfig(ctx, chat.TenantID, modelType, chat.LLMID)
+}
+
 // reasoningNeedsAgenticGraph collapses Python rag_agent's two guards: reasoning on
 // and a tool-calling chat model. The loop exists so the outer model can call the
 // bound rag tool — with a model that never emits a tool_call the whole research
@@ -2371,7 +2391,7 @@ func (s *ChatPipelineService) getModels(ctx context.Context, chat *entity.Chat) 
 	var ttsModel *modelModule.ChatModel
 	if chat.PromptConfig != nil {
 		if useTTS, _ := chat.PromptConfig["tts"].(bool); useTTS {
-			target, err := s.ModelProviderSvc.modelSolver().ResolveDefaultModelConfig(ctx, chat.TenantID, entity.ModelTypeTTS)
+			target, err := s.resolveChatTTSModel(ctx, chat)
 			if err == nil {
 				ttsModel = modelModule.NewChatModel(target.Driver, &target.ModelName, target.APIConfig)
 			}

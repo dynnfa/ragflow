@@ -124,4 +124,21 @@ const methods = {
 
 const llmService = registerNextServer<keyof typeof methods>(methods);
 
+export function llmServiceForTenant(tenantId?: string): typeof llmService {
+  return Object.fromEntries(
+    Object.entries(llmService).map(([name, call]) => [
+      name,
+      (config: any = {}, native = false) =>
+        call(
+          {
+            ...config,
+            ...(native ? {} : { data: config }),
+            headers: { ...config.headers, 'X-Model-Tenant': tenantId },
+          },
+          true,
+        ),
+    ]),
+  ) as typeof llmService;
+}
+
 export default llmService;

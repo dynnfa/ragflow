@@ -14,10 +14,11 @@
  *  limitations under the License.
  */
 
+import { useModelTenant } from '@/hooks/use-model-tenant';
 import { LLMFactory } from '@/constants/llm';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  LlmKeys,
+  createLlmKeys,
   useAddInstanceModel,
   useDeleteInstanceModels,
   useListProviderModels,
@@ -27,7 +28,7 @@ import {
 } from '@/hooks/use-llm-request';
 import { IInstanceModel, IProviderInstance } from '@/interfaces/database/llm';
 import { IModelInfo, IProviderModelItem } from '@/interfaces/request/llm';
-import llmService from '@/services/llm-service';
+import { llmServiceForTenant } from '@/services/llm-service';
 import { modelNameKey } from '@/utils/llm-util';
 import {
   Dispatch,
@@ -591,6 +592,8 @@ export function useModelVerify({
   getFormValues,
   verifyTransform,
 }: UseModelVerifyArgs) {
+  const { tenantId } = useModelTenant();
+  const llmService = useMemo(() => llmServiceForTenant(tenantId), [tenantId]);
   const { verifyProviderConnection } = useVerifyProviderConnection();
   const [verify, setVerify] = useState<Record<string, VerifyStatus>>({});
   const [batchVerifying, setBatchVerifying] = useState(false);
@@ -905,6 +908,8 @@ export function useModelEdit({
   clearCatalogOverride,
   updateDraftModel,
 }: UseModelEditArgs) {
+  const { tenantId } = useModelTenant();
+  const LlmKeys = createLlmKeys(tenantId);
   const queryClient = useQueryClient();
   const customModelDialogFields = useCustomModelFields(providerName);
   const { patchInstanceModel, loading: editLoading } = usePatchInstanceModel();

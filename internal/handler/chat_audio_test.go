@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 
@@ -51,7 +52,7 @@ func TestChatAudioSpeechFailureOmitsProviderError(t *testing.T) {
 	tenantName := "tts-test-tenant"
 	ttsModelID := "tm-tts-1"
 	if err = db.Create(&entity.Tenant{
-		ID:        "user-1",
+		ID:        "team-1",
 		Name:      &tenantName,
 		TTSID:     &ttsModelID,
 		ParserIDs: "naive",
@@ -72,7 +73,7 @@ func TestChatAudioSpeechFailureOmitsProviderError(t *testing.T) {
 	if err = db.Create(&entity.TenantModelProvider{
 		ID:           "prov-1",
 		ProviderName: "SILICONFLOW",
-		TenantID:     "user-1",
+		TenantID:     "team-1",
 	}).Error; err != nil {
 		t.Fatalf("failed to create provider: %v", err)
 	}
@@ -87,11 +88,24 @@ func TestChatAudioSpeechFailureOmitsProviderError(t *testing.T) {
 		t.Fatalf("failed to create instance: %v", err)
 	}
 
+	// The actor has no personal TTS default; synthesis must use the selected team.
+	active := "1"
+	if err := db.Create(&entity.UserTenant{ID: "membership", UserID: "user-1", TenantID: "team-1", Role: "normal", Status: &active}).Error; err != nil {
+		t.Fatal(err)
+	}
+
 	h := NewChatHandler(service.NewChatService(), service.NewUserService())
 	h.SetMindMapDependencies(nil, nil, service.NewModelProviderService(), nil)
 
 	c, w := setupGinContextWithUser(http.MethodPost, "/api/v1/chat/audio/speech", `{"text":"hello"}`)
-	h.ChatAudioSpeech(c)
+	c.Request.Header.Set("X-Model-Tenant", "team-1")
+	router := gin.New()
+	router.Use(func(requestContext *gin.Context) {
+		requestContext.Set("user", c.MustGet("user"))
+		requestContext.Set("user_id", "user-1")
+	})
+	router.POST("/api/v1/chat/audio/speech", ModelTenantScope(false), h.ChatAudioSpeech)
+	router.ServeHTTP(w, c.Request)
 
 	body := w.Body.String()
 	var resp map[string]any

@@ -54,7 +54,7 @@ var ttsSegmentSplitRegex = regexp.MustCompile("[，。/《》？；：！\\n\\r:
 // ChatAudioSpeech converts text to speech using the tenant's default TTS model
 // and streams the concatenated MP3 segments as an audio/mpeg response.
 func (h *ChatHandler) ChatAudioSpeech(c *gin.Context) {
-	user, errorCode, errorMessage := GetUser(c)
+	_, errorCode, errorMessage := GetUser(c)
 	if errorCode != common.CodeSuccess {
 		common.ErrorWithCode(c, errorCode, errorMessage)
 		return
@@ -74,7 +74,7 @@ func (h *ChatHandler) ChatAudioSpeech(c *gin.Context) {
 		return
 	}
 
-	target, err := service.NewModelSolver().ResolveDefaultModelConfig(ctx, user.ID, entity.ModelTypeTTS)
+	target, err := service.NewModelSolver().ResolveDefaultModelConfig(ctx, modelTenantID(c), entity.ModelTypeTTS)
 	if err != nil {
 		common.ErrorWithCode(c, common.CodeDataError, err.Error())
 		return

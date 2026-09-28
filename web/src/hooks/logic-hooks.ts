@@ -51,6 +51,7 @@ import {
 import { useTranslate } from './common-hooks';
 import { useSetPaginationParams } from './route-hook';
 import { useSaveSetting } from './use-user-setting-request';
+import { useModelTenant } from './use-model-tenant';
 
 export function usePrevious<T>(value: T) {
   const ref = useRef<T>();
@@ -414,13 +415,18 @@ export const useSendMessageWithSse = () => {
 };
 
 export const useSpeechWithSse = (url: string = api.chatsTts) => {
+  const { tenantId, ready } = useModelTenant();
   const read = useCallback(
     async (body: any) => {
+      if (!ready || !tenantId) {
+        throw new Error('Model team is not ready');
+      }
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           [Authorization]: getAuthorization(),
           'Content-Type': 'application/json',
+          'X-Model-Tenant': tenantId,
         },
         body: JSON.stringify(body),
       });
@@ -434,10 +440,10 @@ export const useSpeechWithSse = (url: string = api.chatsTts) => {
       }
       return response;
     },
-    [url],
+    [url, tenantId, ready],
   );
 
-  return { read };
+  return { read, ready };
 };
 
 //#region chat hooks

@@ -322,7 +322,7 @@ async def async_chat_solo(dialog, messages, stream=True, session_id=None):
     prompt_config = dialog.prompt_config
     tts_mdl = None
     if prompt_config.get("tts"):
-        default_tts_model = get_tenant_default_model_by_type(dialog.tenant_id, LLMType.TTS)
+        default_tts_model = _get_tts_model_config(dialog)
         tts_mdl = LLMBundle(dialog.tenant_id, default_tts_model, trace_context=chat_mdl.trace_context, langfuse_session_id=session_id)
     msg = [{"role": m["role"], "content": re.sub(r"##\d+\$\$", "", m["content"])} for m in messages if m["role"] != "system"]
     if text_attachments_content and msg:
@@ -350,6 +350,13 @@ async def async_chat_solo(dialog, messages, stream=True, session_id=None):
         user_content = msg[-1].get("content", "[content not available]")
         logging.debug("User: {}|Assistant: {}".format(user_content, answer))
         yield {"answer": answer, "reference": {}, "audio_binary": tts(tts_mdl, answer), "prompt": "", "created_at": time.time()}
+
+
+def _get_tts_model_config(dialog):
+    model_id = dialog.prompt_config.get("tts_model_id")
+    if model_id:
+        return resolve_model_config(dialog.tenant_id, LLMType.TTS, model_id)
+    return get_tenant_default_model_by_type(dialog.tenant_id, LLMType.TTS)
 
 
 def get_models(dialog, trace_context=None, langfuse_session_id=None):
@@ -390,7 +397,7 @@ def get_models(dialog, trace_context=None, langfuse_session_id=None):
         rerank_mdl = LLMBundle(dialog.tenant_id, rerank_model_config, trace_context=trace_context, langfuse_session_id=langfuse_session_id)
 
     if dialog.prompt_config.get("tts"):
-        default_tts_model_config = get_tenant_default_model_by_type(dialog.tenant_id, LLMType.TTS)
+        default_tts_model_config = _get_tts_model_config(dialog)
         tts_mdl = LLMBundle(dialog.tenant_id, default_tts_model_config, trace_context=trace_context, langfuse_session_id=langfuse_session_id)
     return kbs, embd_mdl, rerank_mdl, chat_mdl, tts_mdl
 

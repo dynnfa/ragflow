@@ -40,7 +40,8 @@ import {
   IUpdateModelStatusRequestBody,
   IUpdateProviderInstanceRequestBody,
 } from '@/interfaces/request/llm';
-import llmService from '@/services/llm-service';
+import { llmServiceForTenant } from '@/services/llm-service';
+import { useModelTenant } from './use-model-tenant';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -70,28 +71,65 @@ export const enum LLMApiAction {
   SetDefaultModel = 'setDefaultModel',
 }
 
-export const LlmKeys = {
-  availableProviders: () => [LLMApiAction.AvailableProviders] as const,
-  addedProviders: () => [LLMApiAction.AddedProviders] as const,
-  allModels: (modelType?: string) =>
-    [LLMApiAction.AllModels, modelType] as const,
-  providerInstances: (providerName: string) =>
-    [LLMApiAction.AddedProviders, providerName, 'instances'] as const,
-  providerInstance: (providerName: string, id: string) =>
-    [LLMApiAction.AddedProviders, providerName, id, 'instance'] as const,
-  instanceModels: (providerName: string, instanceName: string) =>
-    [
-      LLMApiAction.AddedProviders,
-      providerName,
-      instanceName,
-      'models',
-    ] as const,
-  defaultModels: () => [LLMApiAction.ListDefaultModels] as const,
+export const createLlmKeys = (tenantId?: string) => {
+  const scope = tenantId ? [tenantId] : [];
+  return {
+    availableProviders: () =>
+      [LLMApiAction.AvailableProviders, ...scope] as const,
+    addedProviders: () => [LLMApiAction.AddedProviders, ...scope] as const,
+    allModels: (modelType?: string, ownerTenantId?: string) =>
+      modelType === undefined && ownerTenantId === undefined
+        ? ([LLMApiAction.AllModels, ...scope] as const)
+        : ([
+            LLMApiAction.AllModels,
+            ...scope,
+            modelType,
+            ownerTenantId,
+          ] as const),
+    providerInstances: (providerName: string) =>
+      [
+        LLMApiAction.AddedProviders,
+        ...scope,
+        providerName,
+        'instances',
+      ] as const,
+    providerInstance: (providerName: string, id: string) =>
+      [
+        LLMApiAction.AddedProviders,
+        ...scope,
+        providerName,
+        id,
+        'instance',
+      ] as const,
+    instanceModels: (providerName: string, instanceName: string) =>
+      [
+        LLMApiAction.AddedProviders,
+        ...scope,
+        providerName,
+        instanceName,
+        'models',
+      ] as const,
+    defaultModels: () => [LLMApiAction.ListDefaultModels, ...scope] as const,
+  };
 };
 
+function useScopedLlmService() {
+  const { tenantId, ready } = useModelTenant();
+  return useMemo(
+    () => ({
+      llmService: llmServiceForTenant(tenantId),
+      LlmKeys: createLlmKeys(tenantId),
+      ready,
+    }),
+    [tenantId, ready],
+  );
+}
+
 export const useFetchAvailableProviders = () => {
+  const { llmService, LlmKeys, ready } = useScopedLlmService();
   const { data, isFetching: loading } = useQuery<IAvailableProvider[]>({
     queryKey: LlmKeys.availableProviders(),
+    enabled: ready,
     initialData: [],
     gcTime: 0,
     queryFn: async () => {
@@ -106,8 +144,10 @@ export const useFetchAvailableProviders = () => {
 };
 
 export const useFetchAddedProviders = () => {
+  const { llmService, LlmKeys, ready } = useScopedLlmService();
   const { data, isFetching: loading } = useQuery<IAvailableProvider[]>({
     queryKey: LlmKeys.addedProviders(),
+    enabled: ready,
     initialData: [],
     gcTime: 0,
     queryFn: async () => {
@@ -124,13 +164,15 @@ export const useFetchAllAddedModels = (
   modelType?: string,
   ownerTenantId?: string,
 ) => {
+  const { llmService, LlmKeys, ready } = useScopedLlmService();
   const {
     data,
     isFetching: loading,
     isFetched,
     isError,
   } = useQuery<IAddedModel[]>({
-    queryKey: [...LlmKeys.allModels(modelType), ownerTenantId],
+    queryKey: LlmKeys.allModels(modelType, ownerTenantId),
+    enabled: ready,
     initialData: [],
     gcTime: 0,
     queryFn: async () => {
@@ -150,7 +192,12 @@ export const useFetchAllAddedModels = (
   // `data` is seeded with `initialData: []`, so it can't tell a real empty
   // result apart from "fetch hasn't completed yet" — `isFetched` stays false
   // until a genuine response (or error) arrives.
-  return { data, loading, isFetched, isError };
+  return {
+    data,
+    loading: !ready || loading,
+    isFetched: ready && isFetched,
+    isError,
+  };
 };
 
 /**
@@ -192,11 +239,12 @@ export function useFindLlmByUuid() {
 }
 
 export const useFetchProviderInstances = (providerName: string) => {
+  const { llmService, LlmKeys, ready } = useScopedLlmService();
   const { data, isFetching: loading } = useQuery<IProviderInstance[]>({
     queryKey: LlmKeys.providerInstances(providerName),
     initialData: [],
     gcTime: 0,
-    enabled: !!providerName,
+    enabled: ready && !!providerName,
     queryFn: async () => {
       const { data } = await llmService.listProviderInstances(
         { provider_name: providerName },
@@ -210,6 +258,7 @@ export const useFetchProviderInstances = (providerName: string) => {
 };
 
 export const useFetchProviderInstance = (providerName: string, id: string) => {
+  const { llmService, LlmKeys } = useScopedLlmService();
   return useQuery<IProviderInstance>({
     queryKey: LlmKeys.providerInstance(providerName, id),
     initialData: undefined as unknown as IProviderInstance,
@@ -229,6 +278,7 @@ export const useFetchInstanceModels = (
   providerName: string,
   instanceName: string,
 ) => {
+  const { llmService, LlmKeys, ready } = useScopedLlmService();
   const {
     data,
     isFetching: loading,
@@ -237,7 +287,8 @@ export const useFetchInstanceModels = (
     queryKey: LlmKeys.instanceModels(providerName, instanceName),
     initialData: [],
     gcTime: 0,
-    enabled: !!providerName && !!instanceName && instanceName !== '__draft__',
+    enabled:
+      ready && !!providerName && !!instanceName && instanceName !== '__draft__',
     queryFn: async () => {
       const { data } = await llmService.listInstanceModels(
         { provider_name: providerName, instance_name: instanceName },
@@ -256,6 +307,7 @@ export const useFetchInstanceModels = (
 export type LlmItem = { name: string; logo: string } & IMyLlmValue;
 
 export const useAddProvider = () => {
+  const { llmService } = useScopedLlmService();
   const {
     data,
     isPending: loading,
@@ -286,6 +338,7 @@ export const useAddProvider = () => {
 };
 
 export const useAddProviderInstance = () => {
+  const { llmService, LlmKeys } = useScopedLlmService();
   const { addProvider } = useAddProvider();
   const queryClient = useQueryClient();
   const {
@@ -341,6 +394,7 @@ export const useAddProviderInstance = () => {
 };
 
 export const useVerifyProviderConnection = () => {
+  const { llmService } = useScopedLlmService();
   const {
     data,
     isPending: loading,
@@ -364,6 +418,7 @@ export const useVerifyProviderConnection = () => {
 };
 
 export const useListProviderModels = () => {
+  const { llmService } = useScopedLlmService();
   const { isPending: loading, mutateAsync } = useMutation({
     mutationKey: [LLMApiAction.ListProviderModels],
     mutationFn: async (params: IListProviderModelsRequestBody) => {
@@ -392,6 +447,7 @@ export const useListProviderModels = () => {
 };
 
 export const useAddInstanceModel = () => {
+  const { llmService, LlmKeys } = useScopedLlmService();
   const queryClient = useQueryClient();
   const {
     data,
@@ -433,6 +489,7 @@ export const useAddInstanceModel = () => {
 };
 
 export const useEditInstanceModel = () => {
+  const { llmService, LlmKeys } = useScopedLlmService();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const {
@@ -471,6 +528,7 @@ export const useEditInstanceModel = () => {
 };
 
 export const useDeleteProviderInstance = () => {
+  const { llmService, LlmKeys } = useScopedLlmService();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const {
@@ -506,6 +564,7 @@ export const useDeleteProviderInstance = () => {
 };
 
 export const useUpdateModelStatus = () => {
+  const { llmService, LlmKeys } = useScopedLlmService();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { isPending: loading, mutateAsync } = useMutation({
@@ -539,6 +598,7 @@ export const useUpdateModelStatus = () => {
  * full set of editable fields without coercing them into the status hook.
  */
 export const usePatchInstanceModel = () => {
+  const { llmService, LlmKeys } = useScopedLlmService();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { isPending: loading, mutateAsync } = useMutation({
@@ -572,6 +632,7 @@ export const usePatchInstanceModel = () => {
 };
 
 export const useDeleteInstanceModels = () => {
+  const { llmService, LlmKeys } = useScopedLlmService();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { isPending: loading, mutateAsync } = useMutation({
@@ -605,6 +666,7 @@ export const useDeleteInstanceModels = () => {
 };
 
 export const useUpdateProviderInstance = () => {
+  const { llmService, LlmKeys } = useScopedLlmService();
   const queryClient = useQueryClient();
   const { isPending: loading, mutateAsync } = useMutation({
     mutationKey: [LLMApiAction.UpdateProviderInstance],
@@ -642,8 +704,10 @@ export const useUpdateProviderInstance = () => {
 };
 
 export const useFetchDefaultModels = () => {
+  const { llmService, LlmKeys, ready } = useScopedLlmService();
   const { data, isFetching: loading } = useQuery<IDefaultModel[]>({
     queryKey: LlmKeys.defaultModels(),
+    enabled: ready,
     // Tenant default models change rarely, and every mutation that can change
     // them invalidates this key explicitly, so hold the result for a while
     // instead of refetching per observer — there is one per dataset row.
@@ -659,7 +723,7 @@ export const useFetchDefaultModels = () => {
     },
   });
 
-  return { data, loading };
+  return { data, loading: !ready || loading };
 };
 
 export const useFetchDefaultModelDictionary = (showEmptyModelWarn = false) => {
@@ -690,6 +754,7 @@ export const useFetchDefaultModelDictionary = (showEmptyModelWarn = false) => {
 };
 
 export const useSetDefaultModel = () => {
+  const { llmService, LlmKeys } = useScopedLlmService();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
 

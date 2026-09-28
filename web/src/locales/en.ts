@@ -1219,8 +1219,9 @@ This auto-tagging feature enhances retrieval by adding another layer of domain-s
       regenerate: 'Regenerate',
       read: 'Read content',
       tts: 'Text to speech',
+      ttsModelRequired: 'Please select a text-to-speech model.',
       ttsTip:
-        'Ensure you select a TTS model on the Settings page before enabling this toggle to play text as audio.',
+        'Play responses as audio using the selected text-to-speech model.',
       relatedQuestion: 'Related question',
       answerTitle: 'R',
       multiTurn: 'Multi-turn optimization',
@@ -1311,6 +1312,9 @@ This auto-tagging feature enhances retrieval by adding another layer of domain-s
         'Select which metadata fields to display with each chunk',
     },
     setting: {
+      modelTeam: 'Model configuration team',
+      teamModelsReadOnly:
+        'Team models are managed by the team owner. You can use the models listed here.',
       Verify: 'Verify',
       keyValid: 'Your API Key is valid.',
       keyInvalid: 'Your API Key is invalid.',

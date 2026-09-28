@@ -69,7 +69,7 @@ export const useRemoveMessage = (
 
 export const useSpeech = (content: string, audioBinary?: string) => {
   const ref = useRef<HTMLAudioElement>(null);
-  const { read } = useSpeechWithSse();
+  const { read, ready } = useSpeechWithSse();
   const player = useRef<SpeechPlayer>();
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
@@ -105,11 +105,11 @@ export const useSpeech = (content: string, audioBinary?: string) => {
     if (isPlaying) {
       setIsPlaying(false);
       pause();
-    } else {
+    } else if (ready) {
       setIsPlaying(true);
       speech();
     }
-  }, [setIsPlaying, speech, isPlaying, pause]);
+  }, [setIsPlaying, speech, isPlaying, pause, ready]);
 
   useEffect(() => {
     if (audioBinary) {

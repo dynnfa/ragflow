@@ -23,6 +23,7 @@ export function useChatSettingSchema() {
     quote: z.boolean(),
     keyword: z.boolean(),
     tts: z.boolean(),
+    tts_model_id: z.string().optional(),
     empty_response: z.string().optional(),
     prologue: z.string().optional(),
     system: z.string().min(1, { message: t('systemMessage') }),
@@ -88,6 +89,13 @@ export function useChatSettingSchema() {
       ...MetadataFilterSchema,
     })
     .superRefine((value, ctx) => {
+      if (value.prompt_config.tts && !value.prompt_config.tts_model_id) {
+        ctx.addIssue({
+          code: ZodIssueCode.custom,
+          path: ['prompt_config', 'tts_model_id'],
+          message: t('ttsModelRequired'),
+        });
+      }
       for (const issue of chatPromptKbIssues(value, t)) {
         ctx.addIssue({
           code: ZodIssueCode.custom,
