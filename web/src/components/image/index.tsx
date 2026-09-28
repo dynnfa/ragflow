@@ -30,6 +30,9 @@ interface IImage extends React.ImgHTMLAttributes<HTMLImageElement> {
 
 type ImageCacheItem = {
   count: number;
+  // The URL the bytes belong to, without the cache-busting `_t` query, so an
+  // entry can be found again no matter which `_t` fetched it.
+  baseUrl: string;
   objectUrl?: string;
   promise?: Promise<string>;
   timer?: ReturnType<typeof setTimeout>;
@@ -55,12 +58,32 @@ export const buildDocumentImageUrl = (
   return `${restAPIv1}${path}${query ? `?${query}` : ''}`;
 };
 
+// Drop the cached bytes of one document image. A chunk keeps its img_id when
+// its image is updated in place, so mounted <Image>s would otherwise keep
+// rendering the previously fetched picture.
+export const evictDocumentImage = (id: string, documentId?: string) => {
+  const baseUrl = buildDocumentImageUrl(id, documentId);
+
+  imageCache.forEach((item, cacheKey) => {
+    if (item.baseUrl !== baseUrl) {
+      return;
+    }
+    if (item.timer) {
+      clearTimeout(item.timer);
+    }
+    if (item.objectUrl) {
+      URL.revokeObjectURL(item.objectUrl);
+    }
+    imageCache.delete(cacheKey);
+  });
+};
+
 const fetchDocumentImage = (url: string, authorization: string) => {
   const cacheKey = `${authorization}:${url}`;
   let item = imageCache.get(cacheKey);
 
   if (!item) {
-    item = { count: 0 };
+    item = { count: 0, baseUrl: url.split('?')[0] };
     imageCache.set(cacheKey, item);
   }
   if (item.timer) {
@@ -82,7 +105,10 @@ const fetchDocumentImage = (url: string, authorization: string) => {
         return item.objectUrl;
       })
       .catch((error) => {
-        imageCache.delete(cacheKey);
+        // A re-fetch may have installed a newer entry under this key.
+        if (imageCache.get(cacheKey) === item) {
+          imageCache.delete(cacheKey);
+        }
         throw error;
       });
   }
@@ -97,7 +123,10 @@ const fetchDocumentImage = (url: string, authorization: string) => {
             if (item.objectUrl) {
               URL.revokeObjectURL(item.objectUrl);
             }
-            imageCache.delete(cacheKey);
+            // Eviction or a re-fetch may have replaced this entry meanwhile.
+            if (imageCache.get(cacheKey) === item) {
+              imageCache.delete(cacheKey);
+            }
           }
         }, 30000);
       }
@@ -167,33 +196,42 @@ export const useDocumentImageUrl = (
   return imageUrl;
 };
 
+export type AuthenticatedImageUrlStatus = 'loading' | 'ready' | 'error';
+
 /**
  * Hook to convert any authenticated URL to a blob URL for use in <img> tags.
  * Use this for thumbnail URLs or any other API URLs that require authentication.
+ * The status distinguishes an in-flight fetch from a failed one, which the
+ * empty src alone cannot express.
  */
-export const useAuthenticatedImageUrl = (url: string | undefined | null) => {
-  const [imageUrl, setImageUrl] = useState<string>('');
+export const useAuthenticatedImageUrl = (
+  url: string | undefined | null,
+): { src: string; status: AuthenticatedImageUrlStatus } => {
+  const [state, setState] = useState<{
+    src: string;
+    status: AuthenticatedImageUrlStatus;
+  }>({ src: '', status: 'loading' });
 
   useEffect(() => {
     if (!url || !isAuthRequiredUrl(url)) {
-      setImageUrl(url || '');
+      setState({ src: url || '', status: 'ready' });
       return;
     }
 
     const authorization = getAuthorization();
     let cancelled = false;
-    setImageUrl('');
+    setState({ src: '', status: 'loading' });
 
     const { promise, release } = fetchDocumentImage(url, authorization);
     promise
       .then((blobUrl) => {
         if (!cancelled) {
-          setImageUrl(blobUrl);
+          setState({ src: blobUrl, status: 'ready' });
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setImageUrl('');
+          setState({ src: '', status: 'error' });
         }
       });
 
@@ -203,7 +241,7 @@ export const useAuthenticatedImageUrl = (url: string | undefined | null) => {
     };
   }, [url]);
 
-  return imageUrl;
+  return state;
 };
 
 /**
@@ -219,7 +257,7 @@ export const AuthenticatedImg = ({
 }: React.ImgHTMLAttributes<HTMLImageElement> & {
   fallback?: React.ReactNode;
 }) => {
-  const authenticatedSrc = useAuthenticatedImageUrl(src);
+  const { src: authenticatedSrc } = useAuthenticatedImageUrl(src);
 
   if (!authenticatedSrc) return fallback ?? null;
 

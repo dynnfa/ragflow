@@ -1463,6 +1463,20 @@ func (s *AgentService) RunAgent(ctx context.Context, userID, canvasID, sessionID
 	if sessionID == "" {
 		sessionID = utility.GenerateToken()
 	}
+	trustedFirstTouch := AgentSessionIDFromContext(ctx) == sessionID
+	if !newSession && s.api4ConversationDAO != nil && dao.DB != nil {
+		existingSession, err := s.api4ConversationDAO.GetMetadataBySessionID(ctx, dao.DB, sessionID, canvasID)
+		if err != nil {
+			return nil, fmt.Errorf("RunAgent: load session %q: %w: %w", sessionID, err, ErrAgentStorageError)
+		}
+		if existingSession == nil {
+			if !trustedFirstTouch {
+				return nil, fmt.Errorf("RunAgent: session %q not found: %w", sessionID, dao.ErrUserCanvasNotFound)
+			}
+		} else if existingSession.DialogID != canvasID || existingSession.UserID != userID {
+			return nil, fmt.Errorf("RunAgent: session %q not found: %w", sessionID, dao.ErrUserCanvasNotFound)
+		}
+	}
 	messageID := utility.GenerateToken()
 	questionSaved := false
 	persistQuestion := func() error {
@@ -1703,26 +1717,24 @@ func (s *AgentService) RunAgent(ctx context.Context, userID, canvasID, sessionID
 		dsl = normalisedDSLForRun(versionRow)
 	}
 	sessionFound := false
-	if sessionID != "" && s.api4ConversationDAO != nil {
-		session, sessionErr := s.api4ConversationDAO.GetMetadataBySessionID(ctx, dao.DB, sessionID, canvasID)
-		if sessionErr != nil {
-			return nil, fmt.Errorf("RunAgent: load session %q: %w: %w", sessionID, sessionErr, ErrAgentStorageError)
+	if sessionID != "" && s.api4ConversationDAO != nil && dao.DB != nil {
+		existingSession, err := s.api4ConversationDAO.GetMetadataBySessionID(ctx, dao.DB, sessionID, canvasID)
+		if err != nil {
+			return nil, fmt.Errorf("RunAgent: load session %q: %w: %w", sessionID, err, ErrAgentStorageError)
 		}
-		if session != nil && session.UserID != userID {
+		if existingSession != nil && (existingSession.DialogID != canvasID || existingSession.UserID != userID) {
 			return nil, fmt.Errorf("RunAgent: session %q not found: %w", sessionID, dao.ErrUserCanvasNotFound)
 		}
-		sessionFound = session != nil
-		if session != nil && len(session.DSL) > 0 {
-			dsl = dslpkg.NormalizeForRun(session.DSL)
+		sessionFound = existingSession != nil
+		if existingSession != nil && len(existingSession.DSL) > 0 {
+			dsl = dslpkg.NormalizeForRun(existingSession.DSL)
 		}
 	}
 	if err := validateAgentChatModels(ctx, userID, dsl); err != nil {
 		return nil, err
 	}
-	// A handler may allocate the session id before calling RunAgent so the
-	// effective id is available even when the run emits no events. Treat an
-	// absent conversation row as a first touch regardless of who generated the
-	// id; there is still only one business identity (session_id).
+	// A trusted boundary may allocate the session id before calling RunAgent so
+	// the effective id is available even when the run emits no events.
 	if !sessionFound || newSession {
 		// The editable/released canvas can be a runtime replica from another
 		// conversation. A new session may reuse its graph, memory, and env state,
@@ -1863,6 +1875,17 @@ func (s *AgentService) RunAgent(ctx context.Context, userID, canvasID, sessionID
 	}()
 	registrationHandedOff = true
 	return out, nil
+}
+
+// runReleasedAgent runs the most recently published version of a canvas.
+// Public agent runs keep using RunAgent's editable/latest-version behavior;
+// this path is reserved for the agentbot release=true contract.
+func (s *AgentService) runReleasedAgent(ctx context.Context, userID, canvasID, sessionID string, userInput any, files []map[string]interface{}) (<-chan canvas.RunEvent, error) {
+	version, err := s.versionDAO.GetLatestReleased(ctx, dao.DB, canvasID)
+	if err != nil {
+		return nil, fmt.Errorf("load latest released version for canvas %q: %w", canvasID, err)
+	}
+	return s.RunAgent(ctx, userID, canvasID, sessionID, version.ID, userInput, files)
 }
 
 // validateAgentChatModels rejects stale Agent model references before saving or
@@ -2299,7 +2322,7 @@ func (s *AgentService) buildRunFunc(canvasID string, versionRow *entity.UserCanv
 				return state, err
 			}
 			if shouldTreatAsCompletedLoopRun(err, answer) {
-				appendAssistantHistory(state, assistantOutput)
+				appendAssistantHistory(state, partialAssistantOutput(answer, downloads, attachment))
 				if persistErr := s.persistAgentRunSession(ctx, canvasID, userID, sessionID, messageID, userInput, answer, thinking, referencePayload, dsl, state, true); persistErr != nil {
 					s.markRunFailed(ctx2, runID, "persist session: "+persistErr.Error())
 					return nil, canvas.NewInternalRunError(
@@ -2320,7 +2343,7 @@ func (s *AgentService) buildRunFunc(canvasID string, versionRow *entity.UserCanv
 
 				wfPayload := map[string]interface{}{
 					"inputs":       map[string]any{"query": userInput},
-					"outputs":      workflowOutputs(answer, downloads, attachment),
+					"outputs":      workflowOutputsFromTerminal(assistantOutput),
 					"elapsed_time": now - startedAt,
 					"created_at":   now,
 				}
@@ -2356,11 +2379,14 @@ func (s *AgentService) buildRunFunc(canvasID string, versionRow *entity.UserCanv
 				return state, nil
 			}
 			s.markRunFailed(ctx2, runID, "invoke: "+err.Error())
-			return nil, fmt.Errorf("canvas invoke: %w", err)
+			return nil, canvasInvokeError(err)
 		}
 
-		// Emit message + message_end (mirrors Python's ans dict).
-		appendAssistantHistory(state, assistantOutput)
+		// Persist the Agent answer for subsequent Agent prompts. The terminal
+		// Message output is presentation data and may wrap the answer with
+		// template literals; retaining it in the prompt history makes the model
+		// reproduce and amplify those literals on later turns.
+		appendAssistantHistory(state, partialAssistantOutput(answer, downloads, attachment))
 		if persistErr := s.persistAgentRunSession(ctx, canvasID, userID, sessionID, messageID, userInput, answer, thinking, referencePayload, dsl, state, true); persistErr != nil {
 			s.markRunFailed(ctx2, runID, "persist session: "+persistErr.Error())
 			return nil, canvas.NewInternalRunError(
@@ -2383,7 +2409,7 @@ func (s *AgentService) buildRunFunc(canvasID string, versionRow *entity.UserCanv
 		// per-run token usage across all LLM calls in this turn.
 		wfPayload := map[string]interface{}{
 			"inputs":       map[string]any{"query": userInput},
-			"outputs":      workflowOutputs(answer, downloads, attachment),
+			"outputs":      workflowOutputsFromTerminal(assistantOutput),
 			"elapsed_time": now - startedAt,
 			"created_at":   now,
 		}
@@ -2493,6 +2519,17 @@ func workflowOutputs(content string, downloads, attachment any) any {
 		out["attachment"] = attachment
 	}
 	return out
+}
+
+// workflowOutputsFromTerminal preserves the terminal component's complete
+// visible content in workflow_finished while retaining the established compact
+// string shape when it has no downloads or attachment.
+func workflowOutputsFromTerminal(output map[string]any) any {
+	if len(output) == 0 {
+		return ""
+	}
+	content, _ := output["content"].(string)
+	return workflowOutputs(content, output["downloads"], output["attachment"])
 }
 
 // emptyAttachmentValue reports whether an attachment descriptor is
@@ -2883,6 +2920,18 @@ func shouldTreatAsCompletedLoopRun(err error, answer string) bool {
 	}
 	msg := err.Error()
 	return strings.Contains(msg, "[GraphRunError] no tasks to execute")
+}
+
+func canvasInvokeError(err error) error {
+	if err == nil {
+		return nil
+	}
+	msg := err.Error()
+	if strings.Contains(msg, "[GraphRunError] no tasks to execute") &&
+		strings.Contains(msg, "last completed nodes: [Switch:") {
+		return errors.New("canvas invoke: Switch routing stopped because no connected branch matched the condition; check the Switch branches")
+	}
+	return fmt.Errorf("canvas invoke: %w", err)
 }
 
 // markRunSucceeded records the run as completed successfully via

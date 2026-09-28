@@ -11,10 +11,13 @@ import (
 // fakeWriter is a Writer double that records the last WriteMergedStructure
 // buckets so a test can assert the grouping behavior without an engine.
 type fakeWriter struct {
-	buckets []StructureBucket
+	buckets               []StructureBucket
+	writeMergedCalls      int
+	projectWikiGraphCalls int
 }
 
 func (f *fakeWriter) WriteMerged(context.Context, string, string, []kccommon.Product) error {
+	f.writeMergedCalls++
 	return nil
 }
 func (f *fakeWriter) WriteMergedStructure(_ context.Context, _, _ string, buckets []StructureBucket) error {
@@ -34,8 +37,11 @@ func (f *fakeWriter) DeleteDocLevelForDocs(context.Context, string, string, []st
 func (f *fakeWriter) StripMergedSources(context.Context, string, string, []string) error {
 	return nil
 }
-func (f *fakeWriter) ProjectWikiGraph(context.Context, string, string) error { return nil }
-func (f *fakeWriter) DropWikiGraph(context.Context, string, string) error    { return nil }
+func (f *fakeWriter) ProjectWikiGraph(context.Context, string, string) error {
+	f.projectWikiGraphCalls++
+	return nil
+}
+func (f *fakeWriter) DropWikiGraph(context.Context, string, string) error { return nil }
 
 // TestMergeStructureDataset_GroupsByName covers G1: structure products are
 // bucketed by name, descriptions folded, source ids unioned, and only
@@ -332,7 +338,7 @@ func TestProductFromChunkMap_RestoresStructureTreeKind(t *testing.T) {
 		"id":                            "s1",
 		"doc_id":                        "d1",
 		"compile_kwd":                   "list",
-		"kc_payload":                    `{"entities":[]}`,
+		"content_with_weight":           `{"entities":[]}`,
 		"knowledge_graph_kwd":           "graph",
 		"name_kwd":                      "engine",
 		"source_chunk_ids":              []interface{}{"c1"},
@@ -357,7 +363,7 @@ func TestProductFromChunkMap_RestoresStructureTreeKind(t *testing.T) {
 		"id":                            "t1",
 		"doc_id":                        "d1",
 		"compile_kwd":                   "tree",
-		"kc_payload":                    "overall summary",
+		"content_with_weight":           "overall summary",
 		"raptor_kwd":                    "root",
 		"source_chunk_ids":              []interface{}{"c1"},
 		"source_doc_ids":                []interface{}{"d1"},

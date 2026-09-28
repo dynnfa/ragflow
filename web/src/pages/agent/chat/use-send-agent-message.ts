@@ -257,7 +257,7 @@ export const useSendAgentMessage = ({
   isShared?: boolean;
   refetch?: () => void;
   isTaskMode?: boolean;
-  releaseMode?: string | null;
+  releaseMode?: boolean | null;
   /**
    * Session the page is currently displaying. When provided, streamed
    * frames that belong to another session are not written into the
@@ -389,7 +389,12 @@ export const useSendAgentMessage = ({
         clearUploadResponseList();
 
         if (receiveMessageError(res)) {
-          sonnerMessage.error(res?.data?.message);
+          // useSendMessageBySSE already reports application errors from
+          // streamed code != 0 frames. Only HTTP failures need a second
+          // layer's notification because the SSE hook cannot parse them.
+          if (res?.response?.status !== 200) {
+            sonnerMessage.error(res?.data?.message);
+          }
 
           // cancel loading
           setValue(message.content);
