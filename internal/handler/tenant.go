@@ -65,7 +65,7 @@ type SetModelRequest struct {
 }
 
 func (h *TenantHandler) setDefaultModels(c *gin.Context, wrapModels bool) {
-	user, errorCode, errorMessage := GetUser(c)
+	_, errorCode, errorMessage := GetUser(c)
 	if errorCode != common.CodeSuccess {
 		common.ErrorWithCode(c, errorCode, errorMessage)
 		return
@@ -79,7 +79,7 @@ func (h *TenantHandler) setDefaultModels(c *gin.Context, wrapModels bool) {
 	}
 
 	ctx := c.Request.Context()
-	err := h.tenantService.SetTenantDefaultModels(ctx, user.ID, req.ModelProvider, req.ModelInstance, req.ModelName, req.ModelType, req.ModelID)
+	err := h.tenantService.SetTenantDefaultModels(ctx, modelTenantID(c), req.ModelProvider, req.ModelInstance, req.ModelName, req.ModelType, req.ModelID)
 	if err != nil {
 		common.ResponseWithCodeData(c, common.CodeExceptionError, false, err.Error())
 		return
@@ -99,14 +99,14 @@ func (h *TenantHandler) setDefaultModels(c *gin.Context, wrapModels bool) {
 // models_api.py:84). The frontend hook `useFetchDefaultModels`
 // (web/src/hooks/use-llm-request.tsx:423) reads `data.data.models`.
 func (h *TenantHandler) GetDefaultModels(c *gin.Context) {
-	user, errorCode, errorMessage := GetUser(c)
+	_, errorCode, errorMessage := GetUser(c)
 	if errorCode != common.CodeSuccess {
 		common.ErrorWithCode(c, errorCode, errorMessage)
 		return
 	}
 	ctx := c.Request.Context()
 
-	defaultModels, err := h.tenantService.ListTenantDefaultModels(ctx, user.ID)
+	defaultModels, err := h.tenantService.ListTenantDefaultModels(ctx, modelTenantID(c))
 	if err != nil {
 		common.ResponseWithCodeData(c, common.CodeExceptionError, false, err.Error())
 		return

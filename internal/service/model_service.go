@@ -1560,30 +1560,9 @@ func (m *ModelProviderService) ShowTask(ctx context.Context, providerName, insta
 	return taskResponse, common.CodeSuccess, nil
 }
 
-// ListTenantAddedModels returns the list of models the tenant has "added"
-// across all of their provider instances. It is the Go port of Python's
-// models_api_service.list_tenant_added_models
-// (api/apps/services/models_api_service.py:300) and is the response
-// contract for GET /api/v1/models — the endpoint that
-// web/src/hooks/use-llm-request.tsx → useFetchAllAddedModels consumes.
-//
-// Per the Python algorithm, for each (provider × instance) we cross-reference the factory catalog (internal/entity/models/model.go
-// ProviderManager.Providers) with the per-tenant overrides in
-// tenant_model:
-//
-//	active_model_types   = tenant_model rows with status='active'
-//	inactive_model_types = tenant_model rows with status='inactive'
-//	factory_model_types  = provider.Models[i].ModelTypes
-//	model_types = (factory ∪ active) \ inactive
-//
-// The Go port never WRITES to tenant_model, so in practice every model
-// from the factory catalog is treated as added unless explicitly
-// disabled (which today can only happen via SQL — the Go port has no
-// enable/disable endpoint path that mutates tenant_model). This is
-// intentional: the previous Go contract mistakenly routed /api/v1/models
-// to ListTenantDefaultModels (which only enumerates the 6-7 default
-// tenant fields and returned `[]` for any tenant without defaults),
-// breaking the front-end's "View Models" list entirely.
+// ListTenantAddedModels lists models in the requested team's provider instances.
+// The caller must own the team or have an accepted membership. Configured model
+// records are filtered by type and ranked using the provider catalog.
 func (m *ModelProviderService) ListTenantAddedModels(ctx context.Context, userID, ownerTenantID, modelTypeFilter string) ([]map[string]interface{}, common.ErrorCode, error) {
 	tenant, code, err := m.resolveModelListTenant(ctx, userID, ownerTenantID)
 	if err != nil {
@@ -1810,7 +1789,7 @@ func (m *ModelProviderService) resolveModelListTenant(ctx context.Context, userI
 		}
 		allowed := false
 		for _, rel := range relations {
-			if rel.TenantID == ownerTenantID {
+			if rel.TenantID == ownerTenantID && (rel.Role == "owner" || rel.Role == "normal") {
 				allowed = true
 				break
 			}
@@ -3611,7 +3590,7 @@ func (m *ModelProviderService) tenantCanReachProviderTenant(ctx context.Context,
 		return false, err
 	}
 	for _, rel := range userTenants {
-		if rel != nil && rel.TenantID == ownerTenantID {
+		if rel != nil && rel.TenantID == ownerTenantID && (rel.Role == "owner" || rel.Role == "normal") {
 			return true, nil
 		}
 	}

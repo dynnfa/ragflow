@@ -1189,6 +1189,9 @@ NER：使用 spaCy NER 和基于规则的关键词提取来抽取 Entities 和 R
       metadataFieldsTip: '选择每个块要显示的元数据字段',
     },
     setting: {
+      modelTeam: '模型配置所属团队',
+      teamModelsReadOnly:
+        '团队模型由团队创建者统一管理。你可以使用以下模型，无需单独配置。',
       Verify: '验证',
       keyValid: '你的 API 密钥有效。',
       keyInvalid: '你的 API 密钥无效。',

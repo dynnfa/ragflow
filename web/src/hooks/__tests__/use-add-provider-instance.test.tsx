@@ -18,11 +18,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import {
-  LlmKeys,
+  createLlmKeys,
   useAddProviderInstance,
   useFetchInstanceModels,
 } from '../use-llm-request';
 
+let mockTenantId = 'team-1';
 const mockListProviders = jest.fn();
 const mockListProviderInstances = jest.fn();
 const mockAddProviderInstance = jest.fn();
@@ -30,15 +31,24 @@ const mockListInstanceModels = jest.fn();
 
 jest.mock('@/services/llm-service', () => ({
   __esModule: true,
-  default: {
+  llmServiceForTenant: () => ({
     listProviders: (...args: unknown[]) => mockListProviders(...args),
     listProviderInstances: (...args: unknown[]) =>
       mockListProviderInstances(...args),
     addProviderInstance: (...args: unknown[]) =>
       mockAddProviderInstance(...args),
     listInstanceModels: (...args: unknown[]) => mockListInstanceModels(...args),
-  },
+  }),
 }));
+
+const LlmKeys = createLlmKeys('team-1');
+jest.mock('../use-model-tenant', () => ({
+  useModelTenant: () => ({ tenantId: mockTenantId, ready: true }),
+}));
+
+beforeEach(() => {
+  mockTenantId = 'team-1';
+});
 
 describe('useFetchInstanceModels', () => {
   it('rejects a non-zero response code as a failed snapshot', async () => {
@@ -111,4 +121,32 @@ describe('useAddProviderInstance', () => {
       queryKey: LlmKeys.allModels(),
     });
   });
+});
+
+it('drops the previous team snapshot when the model team changes', async () => {
+  mockListInstanceModels.mockResolvedValueOnce({
+    data: { code: 0, data: [{ name: 'team-one-model' }] },
+  });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+  const { result, rerender } = renderHook(
+    () => useFetchInstanceModels('OpenAI', 'default'),
+    { wrapper },
+  );
+  await waitFor(() =>
+    expect(result.current.data[0]?.name).toBe('team-one-model'),
+  );
+  mockTenantId = 'team-2';
+  mockListInstanceModels.mockResolvedValueOnce({
+    data: { code: 0, data: [{ name: 'team-two-model' }] },
+  });
+  rerender();
+  expect(result.current.data).toEqual([]);
+  await waitFor(() =>
+    expect(result.current.data[0]?.name).toBe('team-two-model'),
+  );
 });

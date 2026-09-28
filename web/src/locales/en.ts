@@ -1307,6 +1307,9 @@ This auto-tagging feature enhances retrieval by adding another layer of domain-s
         'Select which metadata fields to display with each chunk',
     },
     setting: {
+      modelTeam: 'Model configuration team',
+      teamModelsReadOnly:
+        'Team models are managed by the team owner. You can use the models listed here.',
       Verify: 'Verify',
       keyValid: 'Your API Key is valid.',
       keyInvalid: 'Your API Key is invalid.',
