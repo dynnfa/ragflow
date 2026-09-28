@@ -1,11 +1,14 @@
 """Model team permissions, tested without external services."""
 
 import importlib.util
+import ast
+import json
+import re
 import sys
 import unittest
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 
 def load_scope(request, membership):
@@ -29,6 +32,39 @@ def load_scope(request, membership):
 
 
 class ModelTenantScopeTests(unittest.IsolatedAsyncioTestCase):
+    async def test_speech_route_uses_selected_team_after_membership_check(self):
+        path = Path(__file__).resolve().parents[4] / "api/apps/restful_apis/chat_api.py"
+        tree = ast.parse(path.read_text())
+        speech = next(node for node in tree.body if isinstance(node, ast.AsyncFunctionDef) and node.name == "tts")
+        # Route registration and login are supplied by the application; keep the scope decorator.
+        speech.decorator_list = [node for node in speech.decorator_list if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "model_tenant_scope"]
+        for role in ("normal", "invite", None):
+            with self.subTest(role=role):
+                request = SimpleNamespace(headers={"X-Model-Tenant": "team"}, args={}, method="POST", path="/api/v1/chat/audio/speech")
+                membership = Mock(return_value=SimpleNamespace(role=role) if role else None)
+                model_config = Mock(return_value={"model": "team-tts"})
+                bundle = Mock(return_value=SimpleNamespace(tts=lambda text: [b"audio"]))
+                namespace = {
+                    "model_tenant_scope": load_scope(request, membership),
+                    "get_request_json": AsyncMock(return_value={"text": "hello"}),
+                    "get_tenant_default_model_by_type": model_config,
+                    "LLMType": SimpleNamespace(TTS="tts"),
+                    "LLMBundle": bundle,
+                    "Response": lambda body, **kwargs: SimpleNamespace(body=body, headers=Mock()),
+                    "re": re,
+                    "json": json,
+                }
+                exec(compile(ast.Module(body=[speech], type_ignores=[]), str(path), "exec"), namespace)
+                result = await namespace["tts"]()
+                if role == "normal":
+                    self.assertEqual(list(result.body), [b"audio"])
+                    model_config.assert_called_once_with("team", "tts")
+                    bundle.assert_called_once_with("team", {"model": "team-tts"})
+                else:
+                    self.assertEqual(result[1], 403)
+                    model_config.assert_not_called()
+                    bundle.assert_not_called()
+
     async def test_member_reads_owner_scope_without_changing_actor(self):
         membership = Mock(return_value=SimpleNamespace(role="normal"))
         request = SimpleNamespace(headers={"X-Model-Tenant": "owner"}, args={}, method="GET", path="/api/v1/models/default")

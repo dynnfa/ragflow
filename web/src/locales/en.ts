@@ -1215,8 +1215,9 @@ This auto-tagging feature enhances retrieval by adding another layer of domain-s
       regenerate: 'Regenerate',
       read: 'Read content',
       tts: 'Text to speech',
+      ttsModelRequired: 'Please select a text-to-speech model.',
       ttsTip:
-        'Ensure you select a TTS model on the Settings page before enabling this toggle to play text as audio.',
+        'Play responses as audio using the selected text-to-speech model.',
       relatedQuestion: 'Related question',
       answerTitle: 'R',
       multiTurn: 'Multi-turn optimization',
