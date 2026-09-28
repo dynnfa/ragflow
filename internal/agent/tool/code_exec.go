@@ -49,7 +49,12 @@ const codeExecToolName = "execute_code"
 const codeExecToolDescription = "This tool has a sandbox that can execute code written in 'Python'/'Javascript'. " +
 	"It receives a piece of code and returns a JSON string. " +
 	"The code must define a main function (Python) or export main (JavaScript); " +
-	"the return value of main is returned as the tool result."
+	"the return value of main is returned as the tool result. " +
+	"To generate charts or files (images, PDFs, CSVs, etc.), save them to the `artifacts/` " +
+	"directory (relative to the working directory); the sandbox automatically collects those " +
+	"files and returns them as artifacts. " +
+	"Example: `plt.savefig('artifacts/chart.png', dpi=150, bbox_inches='tight')`. " +
+	"Supported artifact file types: .png, .jpg, .jpeg, .svg, .pdf, .csv, .json, .html."
 
 // codeExecArgs is the JSON shape the model sends in. The Python
 // tool accepts "lang" + "script"; we also accept "code" as a
@@ -218,6 +223,7 @@ func codeExecResultJSON(ctx context.Context, r *SandboxResponse) (string, error)
 	}
 	if strings.TrimSpace(r.Stderr) != "" &&
 		!hasStructuredResult &&
+		r.Returned == "" &&
 		len(out.Artifacts) == 0 &&
 		strings.TrimSpace(r.Stdout) == "" {
 		out.Error = r.Stderr
@@ -226,8 +232,8 @@ func codeExecResultJSON(ctx context.Context, r *SandboxResponse) (string, error)
 			fmt.Fprintln(os.Stderr, "code_exec: falling back to stdout deserialization because no structured result metadata was provided")
 		}
 		out.RawResult = NormalizeCodeExecOutputValue(resolvedValue)
-		out.ActualType = InferCodeExecActualType(out.RawResult)
-		out.Content = RenderCodeExecCanonicalContent(out.RawResult)
+		out.ActualType = inferCodeExecActualType(out.RawResult)
+		out.Content = renderCodeExecCanonicalContent(out.RawResult)
 	}
 	common.Debug("CodeExec tool",
 		zap.Any("structured_result", r.StructuredResult),
@@ -339,20 +345,28 @@ func extractArtifactList(meta map[string]any, key string) []map[string]any {
 	if !ok {
 		return nil
 	}
-	arr, ok := raw.([]any)
-	if !ok {
+	switch arr := raw.(type) {
+	case []map[string]any:
+		// The sandbox providers decode the JSON array into
+		// []map[string]any (see collectArtifacts in local.go,
+		// ssh.go and self_managed.go), so accept that shape
+		// directly. Without this the tool envelope silently
+		// loses every artifact the sandbox collected.
+		return arr
+	case []any:
+		out := make([]map[string]any, 0, len(arr))
+		for i, item := range arr {
+			m, ok := item.(map[string]any)
+			if !ok {
+				fmt.Fprintf(os.Stderr, "code_exec: %s[%d] is %T, expected map[string]any; dropping\n", key, i, item)
+				continue
+			}
+			out = append(out, m)
+		}
+		return out
+	default:
 		return nil
 	}
-	out := make([]map[string]any, 0, len(arr))
-	for i, item := range arr {
-		m, ok := item.(map[string]any)
-		if !ok {
-			fmt.Fprintf(os.Stderr, "code_exec: %s[%d] is %T, expected map[string]any; dropping\n", key, i, item)
-			continue
-		}
-		out = append(out, m)
-	}
-	return out
 }
 
 func codeExecStubResult(msg string) string {
@@ -371,6 +385,9 @@ func resolveCodeExecResultValue(r *SandboxResponse) (any, bool) {
 		if present, _ := r.StructuredResult["present"].(bool); present {
 			return r.StructuredResult["value"], false
 		}
+	}
+	if r != nil && r.Returned != "" {
+		return r.Returned, false
 	}
 	return deserializeCodeExecStdout(r.Stdout), true
 }

@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -182,6 +183,27 @@ func TestCodeExec_Info(t *testing.T) {
 	}
 }
 
+func TestCodeExecPublicFormattingHandlesTypedNilSlice(t *testing.T) {
+	t.Parallel()
+
+	var value []any
+	if got := InferCodeExecActualType(value); got != "Array<Any>" {
+		t.Fatalf("InferCodeExecActualType(typed nil) = %q, want Array<Any>", got)
+	}
+	if got := RenderCodeExecCanonicalContent(value); got != "[]" {
+		t.Fatalf("RenderCodeExecCanonicalContent(typed nil) = %q, want []", got)
+	}
+
+	contract, err := BuildCodeExecContract(map[string]any{"result": nil}, value)
+	if err != nil {
+		t.Fatalf("BuildCodeExecContract(typed nil): %v", err)
+	}
+	normalized, ok := contract.Value.([]any)
+	if !ok || normalized == nil {
+		t.Fatalf("contract.Value = %#v, want non-nil empty []any", contract.Value)
+	}
+}
+
 // TestCodeExec_ResultExtractsArtifacts pins the artifact
 // collection: SandboxResponse.Metadata["artifacts"] entries that
 // already carry a hosted URL surface unchanged as `_ARTIFACTS` in
@@ -215,6 +237,36 @@ func TestCodeExec_ResultExtractsArtifacts(t *testing.T) {
 	}
 	if got.Artifacts[0]["url"] != "minio://b/chart.png" {
 		t.Errorf("Artifacts[0][url] = %v, want minio://b/chart.png", got.Artifacts[0]["url"])
+	}
+}
+
+// TestCodeExec_ResultExtractsArtifactsFromProviderShape pins the
+// extractor against the shape the sandbox providers actually store:
+// collectArtifacts (local.go / ssh.go / self_managed.go) returns
+// []map[string]any, and the extractor must surface that directly as
+// `_ARTIFACTS` in the tool envelope instead of dropping it (the
+// []any assertion alone silently lost every sandbox artifact).
+func TestCodeExec_ResultExtractsArtifactsFromProviderShape(t *testing.T) {
+	t.Parallel()
+
+	// The sandbox providers (local.go / ssh.go / self_managed.go)
+	// store Metadata["artifacts"] as []map[string]any; the extractor
+	// must surface that shape instead of dropping it. The []any
+	// assertion alone silently lost every sandbox artifact.
+	got := extractArtifactList(map[string]any{
+		"artifacts": []map[string]any{
+			{"name": "simple_plot.png", "mime_type": "image/png", "size": 20365, "content_b64": "aGVsbG8="},
+			{"name": "data.csv", "mime_type": "text/csv", "size": 12, "content_b64": "YQpi"},
+		},
+	}, "artifacts")
+	if len(got) != 2 {
+		t.Fatalf("extractArtifactList len = %d, want 2", len(got))
+	}
+	if got[0]["name"] != "simple_plot.png" {
+		t.Errorf("got[0][name] = %v, want simple_plot.png", got[0]["name"])
+	}
+	if got[1]["name"] != "data.csv" {
+		t.Errorf("got[1][name] = %v, want data.csv", got[1]["name"])
 	}
 }
 
@@ -493,6 +545,90 @@ func TestCodeExec_ResultUsesStructuredResultValue(t *testing.T) {
 	}
 	if got["actual_type"] != "Number" {
 		t.Fatalf("actual_type = %#v, want Number", got["actual_type"])
+	}
+}
+
+func TestCodeExec_ResultPrecedence(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		response   *SandboxResponse
+		wantResult any
+		wantType   string
+	}{
+		{
+			name: "structured result wins over legacy and streams",
+			response: &SandboxResponse{
+				StructuredResult: map[string]any{"present": true, "value": float64(8)},
+				Returned:         "legacy",
+				Stdout:           "stdout",
+				Stderr:           "warning",
+			},
+			wantResult: float64(8),
+			wantType:   "Number",
+		},
+		{
+			name: "explicit structured null wins over legacy and streams",
+			response: &SandboxResponse{
+				StructuredResult: map[string]any{"present": true, "value": nil},
+				Returned:         "legacy",
+				Stdout:           "stdout",
+				Stderr:           "warning",
+			},
+			wantType: "Null",
+		},
+		{
+			name: "legacy returned value tolerates warning streams",
+			response: &SandboxResponse{
+				Returned: "legacy result",
+				Stderr:   "warning",
+			},
+			wantResult: "legacy result",
+			wantType:   "String",
+		},
+		{
+			name: "legacy returned value wins over stdout and stderr",
+			response: &SandboxResponse{
+				Returned: "legacy result",
+				Stdout:   "diagnostic output",
+				Stderr:   "warning",
+			},
+			wantResult: "legacy result",
+			wantType:   "String",
+		},
+		{
+			name:       "stdout remains the final fallback",
+			response:   &SandboxResponse{Stdout: `{"a":[1,2]}`},
+			wantResult: map[string]any{"a": []any{float64(1), float64(2)}},
+			wantType:   "Object",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			out, err := codeExecResultJSON(t.Context(), tt.response)
+			if err != nil {
+				t.Fatalf("codeExecResultJSON: %v", err)
+			}
+			var got map[string]any
+			if err := json.Unmarshal([]byte(out), &got); err != nil {
+				t.Fatalf("output not valid JSON: %v", err)
+			}
+			if got["_ERROR"] != nil {
+				t.Fatalf("_ERROR = %#v, want successful result", got["_ERROR"])
+			}
+			if tt.wantResult == nil {
+				if _, ok := got["raw_result"]; ok {
+					t.Fatalf("raw_result = %#v, want omitted JSON null", got["raw_result"])
+				}
+			} else if !reflect.DeepEqual(got["raw_result"], tt.wantResult) {
+				t.Fatalf("raw_result = %#v, want %#v", got["raw_result"], tt.wantResult)
+			}
+			if got["actual_type"] != tt.wantType {
+				t.Fatalf("actual_type = %#v, want %q", got["actual_type"], tt.wantType)
+			}
+		})
 	}
 }
 

@@ -18,12 +18,12 @@ import csv
 import logging
 import re
 from copy import deepcopy
+from html import escape as html_escape
 from io import BytesIO
 from timeit import default_timer as timer
 
 from docx import Document
 from markdown import markdown
-from openpyxl import load_workbook
 
 from common.constants import MAXIMUM_PAGE_NUMBER
 from common.float_utils import get_float
@@ -34,10 +34,14 @@ from rag.nlp import add_positions, concat_img, docx_question_level, has_qbullet,
 
 class Excel(ExcelParser):
     def __call__(self, fnm, binary=None, callback=None):
+        # The workbook has to be opened with data_only, or a cell holding a formula
+        # yields `=CONCATENATE(...)` instead of the answer Excel computed for it.
+        # RAGFlowExcelParser._load_excel_to_workbook does that, and carries the CSV
+        # and pandas fallbacks every other Excel path in the repo relies on.
         if binary is None:
-            wb = load_workbook(fnm)
-        else:
-            wb = load_workbook(BytesIO(binary))
+            with open(fnm, "rb") as f:
+                binary = f.read()
+        wb = Excel._load_excel_to_workbook(binary)
         total = 0
         for sheetname in wb.sheetnames:
             total += len(list(wb[sheetname].rows))
@@ -237,7 +241,8 @@ class Docx(DocxParser):
                         else:
                             break
                     i += 1
-                    html += f"<td>{c.text}</td>" if span == 1 else f"<td colspan='{span}'>{c.text}</td>"
+                    cell = html_escape(c.text)
+                    html += f"<td>{cell}</td>" if span == 1 else f"<td colspan='{span}'>{cell}</td>"
                 html += "</tr>"
             html += "</table>"
             tbls.append(((None, html), ""))
