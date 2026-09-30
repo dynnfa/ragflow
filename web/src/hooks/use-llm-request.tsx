@@ -77,15 +77,10 @@ export const createLlmKeys = (tenantId?: string) => {
     availableProviders: () =>
       [LLMApiAction.AvailableProviders, ...scope] as const,
     addedProviders: () => [LLMApiAction.AddedProviders, ...scope] as const,
-    allModels: (modelType?: string, ownerTenantId?: string) =>
-      modelType === undefined && ownerTenantId === undefined
+    allModels: (modelType?: string) =>
+      modelType === undefined
         ? ([LLMApiAction.AllModels, ...scope] as const)
-        : ([
-            LLMApiAction.AllModels,
-            ...scope,
-            modelType,
-            ownerTenantId,
-          ] as const),
+        : ([LLMApiAction.AllModels, ...scope, modelType] as const),
     providerInstances: (providerName: string) =>
       [
         LLMApiAction.AddedProviders,
@@ -160,10 +155,7 @@ export const useFetchAddedProviders = () => {
   return { data, loading };
 };
 
-export const useFetchAllAddedModels = (
-  modelType?: string,
-  ownerTenantId?: string,
-) => {
+export const useFetchAllAddedModels = (modelType?: string) => {
   const { llmService, LlmKeys, ready } = useScopedLlmService();
   const {
     data,
@@ -171,7 +163,7 @@ export const useFetchAllAddedModels = (
     isFetched,
     isError,
   } = useQuery<IAddedModel[]>({
-    queryKey: LlmKeys.allModels(modelType, ownerTenantId),
+    queryKey: LlmKeys.allModels(modelType),
     enabled: ready,
     initialData: [],
     gcTime: 0,
@@ -179,9 +171,6 @@ export const useFetchAllAddedModels = (
       const params: IListAllModelsRequestParams = {};
       if (modelType) {
         params.type = modelType;
-      }
-      if (ownerTenantId) {
-        params.owner_tenant_id = ownerTenantId;
       }
       const { data } = await llmService.listAllAddedModels({ params }, true);
 
@@ -207,11 +196,8 @@ export const useFetchAllAddedModels = (
  * `isFetched` must be checked before trusting `validIds` — while the model
  * list is loading it is empty and every value would look missing.
  */
-export const useModelValidIds = (
-  modelTypes: string[],
-  ownerTenantId?: string,
-) => {
-  const { data, isFetched } = useFetchAllAddedModels(undefined, ownerTenantId);
+export const useModelValidIds = (modelTypes: string[]) => {
+  const { data, isFetched } = useFetchAllAddedModels();
 
   const validIds = useMemo(
     () => buildValidModelIds(data, modelTypes),

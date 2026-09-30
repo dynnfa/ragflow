@@ -24,7 +24,6 @@ export type LLMFormFieldProps = {
   testId?: string;
   optionTestIdPrefix?: string;
   config?: any;
-  ownerTenantId?: string;
   required?: boolean;
 };
 
@@ -32,7 +31,6 @@ export function LLMFormField({
   name,
   config,
   modelTypes,
-  ownerTenantId,
   required = false,
 }: LLMFormFieldProps) {
   const { t } = useTranslation();
@@ -46,7 +44,6 @@ export function LLMFormField({
       <ModelTreeSelect
         allowClear={config?.allowClear ?? false}
         modelTypes={modelTypes}
-        ownerTenantId={ownerTenantId}
       />
     </RAGFlowFormItem>
   );

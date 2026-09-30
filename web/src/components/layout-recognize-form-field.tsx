@@ -49,7 +49,6 @@ export function LayoutRecognizeFormField({
   showMineruOptions = true,
   showPaddleocrOptions = true,
   testId,
-  ownerTenantId,
 }: {
   name?: string;
   horizontal?: boolean;
@@ -58,7 +57,6 @@ export function LayoutRecognizeFormField({
   showMineruOptions?: boolean;
   showPaddleocrOptions?: boolean;
   testId?: string;
-  ownerTenantId?: string;
 }) {
   const form = useFormContext();
 
@@ -67,7 +65,7 @@ export function LayoutRecognizeFormField({
     data: allAddedModels,
     isFetched: modelsFetched,
     isError: modelsError,
-  } = useFetchAllAddedModels(undefined, ownerTenantId);
+  } = useFetchAllAddedModels();
 
   const treeData = useMemo(() => {
     const list = optionsWithoutLLM

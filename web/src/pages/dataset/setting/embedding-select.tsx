@@ -12,14 +12,12 @@ export const EmbeddingSelect = ({
   name,
   disabled = false,
   testId,
-  ownerTenantId,
 }: {
   isEdit: boolean;
   field: FieldValues;
   name?: string;
   disabled?: boolean;
   testId?: string;
-  ownerTenantId?: string;
 }) => {
   const { t } = useTranslate('knowledgeConfiguration');
   const form = useFormContext();
@@ -42,7 +40,6 @@ export const EmbeddingSelect = ({
             }
           }
         }}
-        ownerTenantId={ownerTenantId}
         disabled={(disabled && !isEdit) || checking}
         value={field.value}
         placeholder={t('embeddingModelPlaceholder')}

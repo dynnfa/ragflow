@@ -40,10 +40,7 @@ import {
   IMetaDataReturnJSONSettings,
 } from '../../../components/metedata/interface';
 import { ManageMetadataModal } from '../../../components/metedata/manage-modal';
-import {
-  useOwnerTenantId,
-  useKnowledgeBaseContext,
-} from '../../../contexts/knowledge-base-context';
+import { useKnowledgeBaseContext } from '../../../contexts/knowledge-base-context';
 import { EmbeddingSelect } from '../../embedding-select';
 import { useHasParsedDocument, useSelectChunkMethodList } from '../hooks';
 interface IProps {
@@ -96,11 +93,7 @@ export function ChunkMethodItem(props: IProps) {
   );
 }
 
-export function EmbeddingModelItem({
-  line = 1,
-  isEdit,
-  ownerTenantId,
-}: IProps & { ownerTenantId?: string }) {
+export function EmbeddingModelItem({ line = 1, isEdit }: IProps) {
   const { t } = useTranslate('knowledgeConfiguration');
   const form = useFormContext();
   const disabled = useHasParsedDocument(isEdit);
@@ -133,7 +126,6 @@ export function EmbeddingModelItem({
                     field={field}
                     disabled={disabled}
                     testId="ds-settings-basic-embedding-model-select"
-                    ownerTenantId={ownerTenantId}
                   ></EmbeddingSelect>
                 </FormControl>
               </div>
@@ -384,13 +376,11 @@ export const LLMSelect = ({
   isEdit,
   field,
   disabled = false,
-  ownerTenantId,
 }: {
   isEdit: boolean;
   field: FieldValues;
   name?: string;
   disabled?: boolean;
-  ownerTenantId?: string;
 }) => {
   const { t } = useTranslate('knowledgeConfiguration');
   return (
@@ -402,18 +392,11 @@ export const LLMSelect = ({
       disabled={disabled && !isEdit}
       value={field.value}
       placeholder={t('embeddingModelPlaceholder')}
-      ownerTenantId={ownerTenantId}
     />
   );
 };
 
-export function LLMModelItem({
-  line = 1,
-  isEdit,
-  label,
-  name,
-  ownerTenantId,
-}: IProps & { ownerTenantId?: string }) {
+export function LLMModelItem({ line = 1, isEdit, label, name }: IProps) {
   const { t } = useTranslate('knowledgeConfiguration');
   const form = useFormContext();
   // const disabled = useHasParsedDocument(isEdit);
@@ -444,7 +427,6 @@ export function LLMModelItem({
                     isEdit={!!isEdit}
                     field={field}
                     disabled={false}
-                    ownerTenantId={ownerTenantId}
                   ></LLMSelect>
                 </FormControl>
               </div>
@@ -462,13 +444,11 @@ export function LLMModelItem({
 
 export function GlobalIndexModelItem() {
   const { t } = useTranslate('knowledgeConfiguration');
-  const ownerTenantId = useOwnerTenantId();
   return (
     <LLMModelItem
       isEdit={true}
       name="parser_config.llm_id"
       label={t('globalIndexModel')}
-      ownerTenantId={ownerTenantId}
     />
   );
 }

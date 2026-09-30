@@ -88,17 +88,10 @@ export function LabelCard({ children, className, ...props }: LabelCardProps) {
 }
 
 export function LLMLabelCard({ llmId }: { llmId?: string }) {
-  const ownerTenantId = useOwnerTenantId();
   const { t } = useTranslation();
-  // Validity is checked against the canvas owner's models: a shared canvas
-  // runs with the owner's models, while an imported dsl.json makes the
-  // importer the owner — anything else is flagged. Gated on isFetched so a
-  // slow list never flashes a false error state. The display name likewise
-  // resolves through the owner's list.
-  const { validIds, isFetched } = useModelValidIds(
-    ModelTypeMap.llm_id,
-    ownerTenantId,
-  );
+  // Validate and resolve names against the selected model team's list.
+  // Wait for the list to load before flagging an unavailable model.
+  const { validIds, isFetched } = useModelValidIds(ModelTypeMap.llm_id);
 
   const isUnavailable = !!llmId && isFetched && !validIds.has(llmId);
   // An empty model keeps the historical red state; a loading list shows nothing.
@@ -113,7 +106,7 @@ export function LLMLabelCard({ llmId }: { llmId?: string }) {
         {isUnavailable && (
           <TriangleAlert className="size-4 shrink-0 text-state-error" />
         )}
-        <LLMLabel value={llmId} ownerTenantId={ownerTenantId}></LLMLabel>
+        <LLMLabel value={llmId}></LLMLabel>
       </span>
     </LabelCard>
   );

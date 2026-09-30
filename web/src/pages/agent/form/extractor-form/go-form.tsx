@@ -50,7 +50,6 @@ import { useForm, useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { initialGoExtractorValues } from '../../constant/pipeline';
-import { useOwnerTenantId } from '../../context';
 import { useFormChangeCallback } from '../../hooks/use-form-change-callback';
 import { useWatchFormChange } from '../../hooks/use-watch-form-change';
 import { INextOperatorForm } from '../../interface';
@@ -211,8 +210,6 @@ const GoExtractorForm = ({
   useWatchFormChange(node?.id, form);
   useFormChangeCallback(form, onValuesChange);
 
-  const ownerTenantId = useOwnerTenantId();
-
   const tagFileId = useWatch({
     control: form.control,
     name: 'tags.tag_file_id',
@@ -266,9 +263,7 @@ const GoExtractorForm = ({
   return (
     <Form {...form}>
       <FormWrapper>
-        <LargeModelFormField
-          ownerTenantId={ownerTenantId}
-        ></LargeModelFormField>
+        <LargeModelFormField></LargeModelFormField>
 
         <div className="space-y-4">
           <Card as="section" className="bg-bg-card px-5 py-2.5 border-none">

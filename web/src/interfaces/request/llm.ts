@@ -64,7 +64,6 @@ export interface IEditInstanceModelRequestBody {
 
 export interface IListAllModelsRequestParams {
   type?: string;
-  owner_tenant_id?: string;
 }
 
 export interface IUpdateModelStatusRequestBody {

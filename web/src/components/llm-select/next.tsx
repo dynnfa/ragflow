@@ -34,84 +34,63 @@ export interface NextInnerLLMSelectProps {
   filter?: string;
   triggerTestId?: string;
   optionTestIdPrefix?: string;
-  ownerTenantId?: string;
 }
 
 const NextInnerLLMSelect = forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   NextInnerLLMSelectProps
->(
-  (
-    {
-      value,
-      disabled,
-      filter,
-      triggerTestId,
-      optionTestIdPrefix,
-      ownerTenantId,
-    },
-    ref,
-  ) => {
-    const { t } = useTranslation();
-    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+>(({ value, disabled, filter, triggerTestId, optionTestIdPrefix }, ref) => {
+  const { t } = useTranslation();
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-    const modelTypes = useMemo(() => {
-      if (filter === LlmModelType.Chat) {
-        return ['chat'];
-      } else if (filter === LlmModelType.Image2text) {
-        return ['vision'];
-      } else {
-        return ['chat', 'vision'];
-      }
-    }, [filter]);
+  const modelTypes = useMemo(() => {
+    if (filter === LlmModelType.Chat) {
+      return ['chat'];
+    } else if (filter === LlmModelType.Image2text) {
+      return ['vision'];
+    } else {
+      return ['chat', 'vision'];
+    }
+  }, [filter]);
 
-    // Validity is checked against the canvas owner's models: a shared canvas
-    // runs with the owner's models, while an imported dsl.json makes the
-    // importer the owner. Gated on isFetched so a slow list never flashes a
-    // false missing state. The filter-derived modelTypes only narrow the
-    // dropdown display, not validity.
-    const { validIds, isFetched: ownModelsFetched } = useModelValidIds(
-      ModelTypeMap.llm_id,
-      ownerTenantId,
-    );
-    const isModelMissing = !!value && ownModelsFetched && !validIds.has(value);
+  // Validate against the selected model team's list once it has loaded.
+  // The filter-derived modelTypes only narrow the dropdown display.
+  const { validIds, isFetched: modelsFetched } = useModelValidIds(
+    ModelTypeMap.llm_id,
+  );
+  const isModelMissing = !!value && modelsFetched && !validIds.has(value);
 
-    return (
-      <Select disabled={disabled} value={value}>
-        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-          <PopoverTrigger asChild>
-            <SelectTrigger
-              onClick={(e) => {
-                e.preventDefault();
-                setIsPopoverOpen(true);
-              }}
-              ref={ref}
-              data-testid={triggerTestId}
-            >
-              <SelectValue placeholder={t('common.pleaseSelect')}>
-                {isModelMissing ? (
-                  <MissingModelLabel
-                    value={value}
-                    ownerTenantId={ownerTenantId}
-                  />
-                ) : (
-                  <LLMLabel value={value} ownerTenantId={ownerTenantId} />
-                )}
-              </SelectValue>
-            </SelectTrigger>
-          </PopoverTrigger>
-          <PopoverContent side={'left'}>
-            <LlmSettingFieldItems
-              modelTypes={modelTypes}
-              llmOptionTestIdPrefix={optionTestIdPrefix}
-              ownerTenantId={ownerTenantId}
-            ></LlmSettingFieldItems>
-          </PopoverContent>
-        </Popover>
-      </Select>
-    );
-  },
-);
+  return (
+    <Select disabled={disabled} value={value}>
+      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+        <PopoverTrigger asChild>
+          <SelectTrigger
+            onClick={(e) => {
+              e.preventDefault();
+              setIsPopoverOpen(true);
+            }}
+            ref={ref}
+            data-testid={triggerTestId}
+          >
+            <SelectValue placeholder={t('common.pleaseSelect')}>
+              {isModelMissing ? (
+                <MissingModelLabel value={value} />
+              ) : (
+                <LLMLabel value={value} />
+              )}
+            </SelectValue>
+          </SelectTrigger>
+        </PopoverTrigger>
+        <PopoverContent side={'left'}>
+          <LlmSettingFieldItems
+            modelTypes={modelTypes}
+            llmOptionTestIdPrefix={optionTestIdPrefix}
+          ></LlmSettingFieldItems>
+        </PopoverContent>
+      </Popover>
+    </Select>
+  );
+});
 
 NextInnerLLMSelect.displayName = 'LLMSelect';
 

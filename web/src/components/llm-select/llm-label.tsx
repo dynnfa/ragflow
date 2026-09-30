@@ -22,16 +22,15 @@ import { LlmIcon } from '../svg-icon';
 
 interface IProps {
   value?: string;
-  ownerTenantId?: string;
 }
 
 /**
  * Resolve the display name for a persisted model value without judging its
  * availability: composite values yield their parsed name, plain model_id
- * values are looked up in the (optionally owner-scoped) added-model list.
+ * values are looked up in the selected team's added-model list.
  */
-function useModelDisplayName({ value, ownerTenantId }: IProps) {
-  const { data: models } = useFetchAllAddedModels(undefined, ownerTenantId);
+function useModelDisplayName({ value }: IProps) {
+  const { data: models } = useFetchAllAddedModels();
 
   const parsed = value ? parseModelValue(value) : null;
   if (parsed?.model_name) {
@@ -47,8 +46,8 @@ function useModelDisplayName({ value, ownerTenantId }: IProps) {
     : null;
 }
 
-export const LLMLabel = ({ value, ownerTenantId }: IProps) => {
-  const display = useModelDisplayName({ value, ownerTenantId });
+export const LLMLabel = ({ value }: IProps) => {
+  const display = useModelDisplayName({ value });
 
   if (!display?.model_name) return null;
 
@@ -73,11 +72,11 @@ export const LLMLabel = ({ value, ownerTenantId }: IProps) => {
 /**
  * Warning marker for a persisted model value that resolves against no usable
  * model — mirrors the retrieval node's stale-dataset row. Best-effort name:
- * parsed composite name, else a model_id lookup in the (optionally
- * owner-scoped) added-model list, else the raw value.
+ * parsed composite name, else a model_id lookup in the selected team's
+ * added-model list, else the raw value.
  */
-export const MissingModelLabel = ({ value, ownerTenantId }: IProps) => {
-  const display = useModelDisplayName({ value, ownerTenantId });
+export const MissingModelLabel = ({ value }: IProps) => {
+  const display = useModelDisplayName({ value });
 
   return (
     <span className="flex items-center gap-1.5 text-text-disabled">

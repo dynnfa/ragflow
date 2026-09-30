@@ -6,17 +6,14 @@ jest.mock('@/utils/next-request', () => ({
   default: jest.fn(),
 }));
 
-it('scopes GET queries to a team while retaining owner-scoped resource requests', () => {
+it('scopes model queries to the selected team and retains model type filters', () => {
   const service = llmServiceForTenant('team-1');
-  service.listAllAddedModels(
-    { params: { owner_tenant_id: 'resource-owner', type: 'chat' } },
-    true,
-  );
+  service.listAllAddedModels({ params: { type: 'chat' } }, true);
   expect(request).toHaveBeenCalledWith(
     expect.objectContaining({
       method: 'get',
       headers: { 'X-Model-Tenant': 'team-1' },
-      params: { owner_tenant_id: 'resource-owner', type: 'chat' },
+      params: { type: 'chat' },
     }),
   );
 });

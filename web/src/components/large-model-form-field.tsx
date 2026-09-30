@@ -55,14 +55,10 @@ export const LargeModelFilterFormSchema = {
   llm_filter: z.string().optional(),
 };
 
-type LargeModelFormFieldProps = Pick<
-  NextInnerLLMSelectProps,
-  'ownerTenantId'
-> & {
+type LargeModelFormFieldProps = {
   name?: string;
 };
 export function LargeModelFormField({
-  ownerTenantId,
   name = 'llm_id',
 }: LargeModelFormFieldProps) {
   const form = useFormContext();
@@ -111,11 +107,7 @@ export function LargeModelFormField({
               />
 
               <FormControl>
-                <NextLLMSelect
-                  {...field}
-                  filter={filter}
-                  ownerTenantId={ownerTenantId}
-                />
+                <NextLLMSelect {...field} filter={filter} />
               </FormControl>
             </section>
 
@@ -129,13 +121,12 @@ export function LargeModelFormField({
 
 type LargeModelFormFieldWithoutFilterProps = Pick<
   NextInnerLLMSelectProps,
-  'triggerTestId' | 'optionTestIdPrefix' | 'ownerTenantId'
+  'triggerTestId' | 'optionTestIdPrefix'
 >;
 
 export function LargeModelFormFieldWithoutFilter({
   triggerTestId,
   optionTestIdPrefix,
-  ownerTenantId,
 }: LargeModelFormFieldWithoutFilterProps = {}) {
   const form = useFormContext();
 
@@ -150,7 +141,6 @@ export function LargeModelFormFieldWithoutFilter({
               {...field}
               triggerTestId={triggerTestId}
               optionTestIdPrefix={optionTestIdPrefix}
-              ownerTenantId={ownerTenantId}
             />
           </FormControl>
           <FormMessage />

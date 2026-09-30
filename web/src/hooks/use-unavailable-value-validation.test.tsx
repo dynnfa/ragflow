@@ -125,19 +125,14 @@ describe('useUnavailableModelFormSchema', () => {
     ).toBe(true);
   });
 
-  it('validates against the given owner tenant', () => {
+  it('validates models without an owner tenant override', () => {
     mockUseModelValidIds.mockReturnValue({
       validIds: new Set(['m1']),
       isFetched: true,
     });
-    renderHook(() =>
-      useUnavailableModelFormSchema(Schema, { ownerTenantId: 'owner-1' }),
-    );
+    renderHook(() => useUnavailableModelFormSchema(Schema));
 
-    expect(mockUseModelValidIds).toHaveBeenCalledWith(
-      ['chat', 'vision'],
-      'owner-1',
-    );
+    expect(mockUseModelValidIds).toHaveBeenCalledWith(['chat', 'vision']);
   });
 });
 

@@ -77,12 +77,9 @@ export function useCanvasChecklist({
     isLoading: memoryLoading,
     isError: memoryError,
   } = useFetchAllMemoryList(ownerTenantId);
-  // Validate against the canvas owner's resources: a shared canvas runs with
-  // the owner's models/groups/memories, while an imported dsl.json makes the
-  // importer the owner — so references pointing anywhere else surface as
-  // issues.
+  // Model availability follows the selected model configuration team.
   const { validIds: modelValidIds, isFetched: modelsFetched } =
-    useModelValidIds(ModelTypeMap.llm_id, ownerTenantId);
+    useModelValidIds(ModelTypeMap.llm_id);
   const {
     groups: templateGroups,
     isFetched: templateGroupsFetched,

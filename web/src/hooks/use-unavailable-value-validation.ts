@@ -59,24 +59,17 @@ export function useUnavailableValueFormSchema<T extends z.ZodTypeAny>(
 
 /**
  * Availability check for a model field (default `llm_id`), validated against
- * the models visible under `ownerTenantId` (the current user's own when
- * omitted): a shared canvas runs with the owner's models, while an imported
- * dsl.json makes the importer the owner — references pointing anywhere else
- * get flagged.
+ * the models available in the currently selected model configuration team.
  */
 export function useUnavailableModelFormSchema<T extends z.ZodTypeAny>(
   schema: T,
   {
     fieldName = 'llm_id',
     modelTypes = ModelTypeMap.llm_id,
-    ownerTenantId,
-  }: { fieldName?: string; modelTypes?: string[]; ownerTenantId?: string } = {},
+  }: { fieldName?: string; modelTypes?: string[] } = {},
 ) {
   const { t } = useTranslation();
-  const { validIds, isFetched: modelsFetched } = useModelValidIds(
-    modelTypes,
-    ownerTenantId,
-  );
+  const { validIds, isFetched: modelsFetched } = useModelValidIds(modelTypes);
 
   const { formSchema } = useUnavailableValueFormSchema(schema, {
     fieldName,

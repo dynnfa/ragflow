@@ -59,10 +59,8 @@ const CompilationForm = ({
     useUnavailableCompilationTemplateGroupFormSchema(FormSchema, {
       ownerTenantId,
     });
-  const { formSchema, modelsFetched } = useUnavailableModelFormSchema(
-    groupFormSchema,
-    { ownerTenantId },
-  );
+  const { formSchema, modelsFetched } =
+    useUnavailableModelFormSchema(groupFormSchema);
 
   const form = useForm<CompilationFormSchemaType>({
     defaultValues,
@@ -75,8 +73,7 @@ const CompilationForm = ({
   useWatchFormChange(node?.id, form);
   useFormChangeCallback(form, onValuesChange);
 
-  // Persisted model/group references from an imported dsl.json do not exist
-  // under the importer's tenant — surface the errors once the lists load.
+  // Surface unavailable model/group references once their lists load.
   useRevalidateUnavailableValue(
     form,
     templateGroupsFetched,
@@ -91,9 +88,7 @@ const CompilationForm = ({
           name="compilation_template_group_id"
           ownerTenantId={ownerTenantId}
         ></CompilationTemplateFormField>
-        <LlmSettingFieldItems
-          ownerTenantId={ownerTenantId}
-        ></LlmSettingFieldItems>
+        <LlmSettingFieldItems></LlmSettingFieldItems>
       </FormWrapper>
       {!hideOutputs && (
         <div className="p-5">

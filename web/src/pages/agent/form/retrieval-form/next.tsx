@@ -194,9 +194,7 @@ function RetrievalForm({ node }: INextOperatorForm) {
             <TopNFormField></TopNFormField>
             {hideKnowledgeGraphField || (
               <>
-                <RerankFormFields
-                  ownerTenantId={ownerTenantId}
-                ></RerankFormFields>
+                <RerankFormFields></RerankFormFields>
                 <MetadataFilter canReference></MetadataFilter>
               </>
             )}

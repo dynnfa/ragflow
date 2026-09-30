@@ -9,7 +9,6 @@ import { Switch } from '@/components/ui/switch';
 import { FileType } from '@/constants/file';
 import { upperCase, upperFirst } from 'lodash';
 import { useTranslation } from 'react-i18next';
-import { useOwnerTenantId } from '../../context';
 import {
   OutputFormatMap,
   SpreadsheetOutputFormat,
@@ -62,14 +61,12 @@ export function ParserMethodFormField({
   optionsWithoutLLM,
 }: CommonProps & { optionsWithoutLLM?: { value: string; label: string }[] }) {
   const { t } = useTranslation();
-  const ownerTenantId = useOwnerTenantId();
   return (
     <LayoutRecognizeFormField
       name={buildFieldNameWithPrefix(`parse_method`, prefix)}
       horizontal={false}
       optionsWithoutLLM={optionsWithoutLLM}
       label={t('flow.parserMethod')}
-      ownerTenantId={ownerTenantId}
     ></LayoutRecognizeFormField>
   );
 }

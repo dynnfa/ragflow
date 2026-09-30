@@ -129,7 +129,6 @@ export interface ModelTreeSelectProps {
   className?: string;
   renderSelected?: (node: TreeSelectNode | undefined) => React.ReactNode;
   testId?: string;
-  ownerTenantId?: string;
 }
 
 export const ModelTreeSelect = forwardRef<
@@ -147,7 +146,6 @@ export const ModelTreeSelect = forwardRef<
     className,
     renderSelected,
     testId,
-    ownerTenantId,
   },
   ref,
 ) {
@@ -155,7 +153,7 @@ export const ModelTreeSelect = forwardRef<
     data: allAddedModels,
     isFetched: modelsFetched,
     isError: modelsError,
-  } = useFetchAllAddedModels(undefined, ownerTenantId);
+  } = useFetchAllAddedModels();
 
   const treeData = useMemo(
     () => buildModelTree(allAddedModels, modelTypes),
@@ -211,10 +209,8 @@ export const ModelTreeSelect = forwardRef<
   // instead of rendering a blank select. Prefer the readable model name over
   // the raw composite id.
   const renderMissingModel = useCallback(
-    (missingValue: string) => (
-      <MissingModelLabel value={missingValue} ownerTenantId={ownerTenantId} />
-    ),
-    [ownerTenantId],
+    (missingValue: string) => <MissingModelLabel value={missingValue} />,
+    [],
   );
 
   return (
@@ -253,7 +249,7 @@ export function ModelTreeSelectFormField({
 }: ModelTreeSelectFormFieldProps) {
   const form = useFormContext();
   const { t } = useTranslation();
-  const { loading } = useFetchAllAddedModels(undefined, rest.ownerTenantId);
+  const { loading } = useFetchAllAddedModels();
   const value = useWatch({ control: form.control, name });
 
   // `form` from context is a new object on every provider render, so it must

@@ -7,18 +7,14 @@ import {
   ConfigurationFormContainer,
   MainContainer,
 } from '../configuration-form-container';
-import { useOwnerTenantId } from '../../../contexts/knowledge-base-context';
 import { AutoMetadata, GlobalIndexModelItem } from './common-item';
 import { FormLayout } from '@/constants/form';
 
 export function PresentationConfiguration() {
-  const ownerTenantId = useOwnerTenantId();
   return (
     <MainContainer>
       <ConfigurationFormContainer>
-        <LayoutRecognizeFormField
-          ownerTenantId={ownerTenantId}
-        ></LayoutRecognizeFormField>
+        <LayoutRecognizeFormField></LayoutRecognizeFormField>
         <GlobalIndexModelItem />
       </ConfigurationFormContainer>
 

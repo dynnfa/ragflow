@@ -3,13 +3,11 @@ import {
   ModelTypeMap,
 } from '@/components/model-tree-select';
 import { useTranslation } from 'react-i18next';
-import { useOwnerTenantId } from '../../context';
 import { OutputFormatFormFieldProps } from './common-form-fields';
 import { buildFieldNameWithPrefix } from './utils';
 
 export function AudioFormFields({ prefix }: OutputFormatFormFieldProps) {
   const { t } = useTranslation();
-  const ownerTenantId = useOwnerTenantId();
 
   return (
     <>
@@ -19,7 +17,6 @@ export function AudioFormFields({ prefix }: OutputFormatFormFieldProps) {
         label={t('chat.model')}
         modelTypes={ModelTypeMap.asr_id}
         allowClear
-        ownerTenantId={ownerTenantId}
       />
     </>
   );
@@ -27,7 +24,6 @@ export function AudioFormFields({ prefix }: OutputFormatFormFieldProps) {
 
 export function VideoFormFields({ prefix }: OutputFormatFormFieldProps) {
   const { t } = useTranslation();
-  const ownerTenantId = useOwnerTenantId();
 
   return (
     <>
@@ -37,7 +33,6 @@ export function VideoFormFields({ prefix }: OutputFormatFormFieldProps) {
         label={t('chat.model')}
         modelTypes={ModelTypeMap.img2txt_id}
         allowClear
-        ownerTenantId={ownerTenantId}
       />
     </>
   );

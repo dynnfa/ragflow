@@ -15,7 +15,6 @@ import {
   ContextGeneratorFieldName,
   initialExtractorValues,
 } from '../../constant/pipeline';
-import { useOwnerTenantId } from '../../context';
 import { useBuildNodeOutputOptions } from '../../hooks/use-build-options';
 import { useFormChangeCallback } from '../../hooks/use-form-change-callback';
 import { useFormValues } from '../../hooks/use-form-values';
@@ -71,14 +70,10 @@ const PythonExtractorForm = ({
   useWatchFormChange(node?.id, form);
   useFormChangeCallback(form, onValuesChange);
 
-  const ownerTenantId = useOwnerTenantId();
-
   return (
     <Form {...form}>
       <FormWrapper>
-        <LargeModelFormField
-          ownerTenantId={ownerTenantId}
-        ></LargeModelFormField>
+        <LargeModelFormField></LargeModelFormField>
 
         <RAGFlowFormItem label={t('flow.fieldName')} name="field_name">
           {(field) => (
