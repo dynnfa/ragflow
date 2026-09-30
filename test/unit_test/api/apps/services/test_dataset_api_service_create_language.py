@@ -74,6 +74,7 @@ def _load_create_dataset_module(monkeypatch):
         monkeypatch,
         "api.db.services.knowledgebase_service",
         KnowledgebaseService=SimpleNamespace(
+            with_access=lambda rows, user_id: rows,
             create_with_name=create_with_name,
             save=MagicMock(return_value=True),
             get_by_id=MagicMock(return_value=(True, created_kb)),

@@ -20,6 +20,7 @@ import {
 import { CompileProgressBoard } from './compile-progress-board';
 import { ProgressLogPanel } from './progress-log-panel';
 import { ProgressRing } from './progress-ring';
+import { useKnowledgeBaseContext } from '../contexts/knowledge-base-context';
 
 type EmptyStateType = GenerableViewMode;
 
@@ -43,6 +44,8 @@ export function CompilationEmptyState({
   data,
 }: ICompilationEmptyStateProps) {
   const { t } = useTranslation();
+  const { knowledgeBase } = useKnowledgeBaseContext();
+  const canWrite = knowledgeBase?.can_write !== false;
   const generateType = ViewModeGenerateTypeMap[type];
   const { runGenerate, pauseGenerate } = useDatasetGenerate();
   const { status, percent } = useGenerateStatus(data);
@@ -65,7 +68,7 @@ export function CompilationEmptyState({
       {!showProgress ? (
         <div className="flex flex-col items-center gap-4">
           <p className="text-text-secondary text-lg">{t(TitleKeyMap[type])}</p>
-          {!isGo && (
+          {!isGo && canWrite && (
             <Button
               variant="outline"
               onClick={handleGenerate}
@@ -94,21 +97,22 @@ export function CompilationEmptyState({
             <ProgressRing percent={percent} failed={status === 'failed'} />
             <div className="flex items-center gap-2 text-text-primary">
               <span>{t(ViewModeLabelKeyMap[type])}</span>
-              {status === 'failed' ? (
-                <span className="cursor-pointer" onClick={handleGenerate}>
-                  <IconFontFill
-                    name="reparse"
-                    className="text-accent-primary"
-                  />
-                </span>
-              ) : (
-                <span
-                  className="text-state-error cursor-pointer"
-                  onClick={handlePause}
-                >
-                  <CircleX className="size-5 text-state-error" />
-                </span>
-              )}
+              {canWrite &&
+                (status === 'failed' ? (
+                  <span className="cursor-pointer" onClick={handleGenerate}>
+                    <IconFontFill
+                      name="reparse"
+                      className="text-accent-primary"
+                    />
+                  </span>
+                ) : (
+                  <span
+                    className="text-state-error cursor-pointer"
+                    onClick={handlePause}
+                  >
+                    <CircleX className="size-5 text-state-error" />
+                  </span>
+                ))}
             </div>
           </div>
           <div className="flex min-h-0 h-full justify-end">

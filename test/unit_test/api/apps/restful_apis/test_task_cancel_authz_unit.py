@@ -167,7 +167,7 @@ def _load_module(monkeypatch, *, accessible_kb_ids):
             return False, None
 
         @staticmethod
-        def accessible(doc_id, user_id):
+        def writable(doc_id, user_id):
             ok, doc = _DocumentService.get_by_id(doc_id)
             if not ok:
                 return False
@@ -258,7 +258,7 @@ def test_fake_doc_id_tasks_still_cancel(monkeypatch):
 
 @pytest.mark.p2
 def test_task_with_unresolved_document_is_denied(monkeypatch):
-    # accessible() fails closed: a task whose document no longer resolves
+    # writable() fails closed: a task whose document no longer resolves
     # cannot be cancelled cross tenant.
     module = _load_module(monkeypatch, accessible_kb_ids={"kb-mine"})
     res = _run(module.cancel_task("task-4"))

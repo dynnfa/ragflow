@@ -604,6 +604,13 @@ export default {
       theDocumentBeingParsedCannotBeDeleted: '正在解析的文档不能被删除',
     },
     knowledgeConfiguration: {
+      noTeams: '暂无可共享的团队',
+      onlyMe: '仅自己',
+      selectedTeams: '指定团队',
+      sharedTeams: '共享给团队',
+      teamSharingTip:
+        '所选团队的创建人和正式成员可以查看和检索内容，仅知识库创建人可以修改。',
+      selectTeamsRequired: '请至少选择一个团队',
       randomSeedTip:
         '种子是伪随机算法的起点，它确保在不同运行中产生相同的输出，从而保证可重复性。',
       datasetDescription: '你的知识库描述。',

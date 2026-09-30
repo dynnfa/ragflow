@@ -22,6 +22,7 @@ from copy import deepcopy
 from enum import Enum
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
@@ -109,7 +110,6 @@ def _load_file2document_module(monkeypatch):
 
     permission_mod = ModuleType("api.common.check_team_permission")
     permission_mod.check_file_team_permission = lambda *_args, **_kwargs: True
-    permission_mod.check_kb_team_permission = lambda *_args, **_kwargs: True
     monkeypatch.setitem(sys.modules, "api.common.check_team_permission", permission_mod)
     common_pkg.check_team_permission = permission_mod
 
@@ -165,6 +165,10 @@ def _load_file2document_module(monkeypatch):
         @staticmethod
         def get_by_id(_kb_id):
             return False, None
+
+        @staticmethod
+        def writable(_kb_id, _user_id):
+            return True
 
     kb_service_mod.KnowledgebaseService = _StubKnowledgebaseService
     monkeypatch.setitem(sys.modules, "api.db.services.knowledgebase_service", kb_service_mod)
@@ -277,12 +281,12 @@ def test_convert_branch_matrix_unit(monkeypatch):
 
     # Unauthorized dataset access is rejected before scheduling background work.
     monkeypatch.setattr(module, "check_file_team_permission", lambda *_args, **_kwargs: True)
-    monkeypatch.setattr(module, "check_kb_team_permission", lambda *_args, **_kwargs: False)
+    monkeypatch.setattr(module.KnowledgebaseService, "writable", lambda *_args, **_kwargs: False)
     res = _run(module.convert())
     assert res["message"] == "no authorization"
 
     # Valid file and kb schedule background work and return data=True immediately.
-    monkeypatch.setattr(module, "check_kb_team_permission", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr(module.KnowledgebaseService, "writable", lambda *_args, **_kwargs: True)
     res = _run(module.convert())
     assert res["code"] == 0
     assert res["data"] is True
@@ -308,7 +312,8 @@ def test_convert_branch_matrix_unit(monkeypatch):
 
 
 @pytest.mark.p2
-def test_convert_files_renames_duplicate_document_name_unit(monkeypatch):
+@pytest.mark.parametrize("file_ids", [["f1"], ["f1", "f1"]])
+def test_convert_files_renames_duplicate_document_name_unit(monkeypatch, file_ids):
     module = _load_file2document_module(monkeypatch)
     inserted_docs = []
     file = _DummyFile("f1", module.FileType.DOC.value, name="file.txt")
@@ -318,8 +323,99 @@ def test_convert_files_renames_duplicate_document_name_unit(monkeypatch):
     monkeypatch.setattr(module.KnowledgebaseService, "get_by_id", lambda _kb_id: (True, kb))
     monkeypatch.setattr(module.DocumentService, "insert", lambda payload: inserted_docs.append(payload) or SimpleNamespace(id="doc-1"))
 
-    module._convert_files(["f1"], ["kb-dup"], "user-1", "add")
+    module._convert_files(file_ids, ["kb-dup"], "user-1", "add")
 
+    assert len(inserted_docs) == 1
     assert inserted_docs[0]["name"] == "file(1).txt"
     assert inserted_docs[0]["suffix"] == "txt"
     assert inserted_docs[0]["location"] == "loc"
+
+
+def _setup_mixed_links(monkeypatch, module, *, separate_files):
+    docs = {
+        "doc-own": SimpleNamespace(id="doc-own", kb_id="kb-own"),
+        "doc-shared": SimpleNamespace(id="doc-shared", kb_id="kb-shared"),
+    }
+    links = {"f1": [SimpleNamespace(document_id="doc-own")]}
+    shared_file_id = "f2" if separate_files else "f1"
+    links.setdefault(shared_file_id, []).append(SimpleNamespace(document_id="doc-shared"))
+    monkeypatch.setattr(module.File2DocumentService, "get_by_file_id", lambda file_id: links.get(file_id, []))
+    monkeypatch.setattr(module.DocumentService, "get_by_id", lambda doc_id: (True, docs[doc_id]))
+    monkeypatch.setattr(module.KnowledgebaseService, "writable", lambda kb_id, _user_id: kb_id != "kb-shared")
+    mutations = {
+        "remove_document": Mock(return_value=True),
+        "delete_by_document_id": Mock(),
+        "insert_document": Mock(return_value=SimpleNamespace(id="doc-new")),
+        "insert_link": Mock(),
+    }
+    monkeypatch.setattr(module.DocumentService, "remove_document", mutations["remove_document"])
+    monkeypatch.setattr(module.File2DocumentService, "delete_by_document_id", mutations["delete_by_document_id"])
+    monkeypatch.setattr(module.DocumentService, "insert", mutations["insert_document"])
+    monkeypatch.setattr(module.File2DocumentService, "insert", mutations["insert_link"])
+    return list(links), mutations
+
+
+@pytest.mark.parametrize("separate_files", [False, True])
+def test_replace_worker_denies_entire_batch_before_any_mutation(monkeypatch, separate_files):
+    module = _load_file2document_module(monkeypatch)
+    file_ids, mutations = _setup_mixed_links(monkeypatch, module, separate_files=separate_files)
+
+    with pytest.raises(PermissionError, match="no authorization"):
+        module._convert_files(file_ids, [], "user-1", "replace")
+
+    for mutation in mutations.values():
+        mutation.assert_not_called()
+
+
+@pytest.mark.parametrize("request_kind", ["single", "batch", "folder"])
+def test_replace_route_denies_readonly_unlink_before_scheduling(monkeypatch, request_kind):
+    module = _load_file2document_module(monkeypatch)
+    file_ids, mutations = _setup_mixed_links(monkeypatch, module, separate_files=request_kind != "single")
+    if request_kind == "folder":
+        requested_files = [_DummyFile("folder", module.FileType.FOLDER.value)]
+        monkeypatch.setattr(module.FileService, "get_all_innermost_file_ids", lambda _file_id, _acc: file_ids)
+    else:
+        requested_files = [_DummyFile(file_id, module.FileType.DOC.value) for file_id in file_ids]
+    monkeypatch.setattr(module.FileService, "get_by_ids", lambda _ids: requested_files)
+    _set_request_json(monkeypatch, module, {"file_ids": [file.id for file in requested_files], "kb_ids": []})
+    _set_request_args(monkeypatch, module, {})
+    executor = Mock()
+
+    async def invoke():
+        monkeypatch.setattr(asyncio.get_running_loop(), "run_in_executor", executor)
+        return await module.convert()
+
+    result = _run(invoke())
+
+    assert result["code"] == 102
+    assert result["message"] == "no authorization"
+    executor.assert_not_called()
+    for mutation in mutations.values():
+        mutation.assert_not_called()
+
+
+def test_replace_worker_keeps_readonly_links_when_retained(monkeypatch):
+    module = _load_file2document_module(monkeypatch)
+    file_ids, mutations = _setup_mixed_links(monkeypatch, module, separate_files=False)
+
+    module._convert_files(file_ids, ["kb-shared"], "user-1", "replace")
+
+    assert mutations["remove_document"].call_count == 1
+    assert mutations["remove_document"].call_args.args[0].id == "doc-own"
+    mutations["delete_by_document_id"].assert_called_once_with("doc-own")
+    mutations["insert_document"].assert_not_called()
+    mutations["insert_link"].assert_not_called()
+
+
+def test_add_worker_preserves_existing_readonly_links(monkeypatch):
+    module = _load_file2document_module(monkeypatch)
+    file_ids, mutations = _setup_mixed_links(monkeypatch, module, separate_files=False)
+    kb = SimpleNamespace(id="kb-new", parser_id="naive", pipeline_id="p1", parser_config={})
+    monkeypatch.setattr(module.KnowledgebaseService, "get_by_id", lambda _kb_id: (True, kb))
+
+    module._convert_files(file_ids, ["kb-new"], "user-1", "add")
+
+    mutations["remove_document"].assert_not_called()
+    mutations["delete_by_document_id"].assert_not_called()
+    assert mutations["insert_document"].call_args.args[0]["kb_id"] == "kb-new"
+    assert mutations["insert_link"].call_args.args[0]["document_id"] == "doc-new"

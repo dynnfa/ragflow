@@ -100,7 +100,7 @@ def _register_commit_routes(prefix, param_name, resolver_type=None):
     _route_suffix[0] += 1
     _n = _route_suffix[0]
 
-    def _resolve(entity_id):
+    def _resolve(entity_id, write=False):
         if resolver_type is None:
             # entity_id IS the folder_id. Every folder is a File row owned by
             # a tenant, so authorize it the same way file_api does - a logged-in
@@ -109,10 +109,14 @@ def _register_commit_routes(prefix, param_name, resolver_type=None):
             e, folder = FileService.get_by_id(entity_id)
             if not e or not check_file_team_permission(folder, current_user.id):
                 raise ValueError(f"Could not resolve folder '{entity_id}'")
+            if write and folder.created_by != current_user.id:
+                raise ValueError("no authorization")
             return entity_id
         folder_id = _resolve_folder_id(resolver_type, entity_id)
         if folder_id is None:
             raise ValueError(f"Could not resolve {resolver_type} '{entity_id}' to a folder")
+        if write and resolver_type == "datasets" and not KnowledgebaseService.writable(entity_id, current_user.id):
+            raise ValueError("no authorization")
         return folder_id
 
     # ── Create commit ──────────────────────────────────────────────────────
@@ -120,7 +124,7 @@ def _register_commit_routes(prefix, param_name, resolver_type=None):
     @login_required
     @validate_request("message", "files")
     async def create_commit(entity_id):
-        folder_id = _resolve(entity_id)
+        folder_id = _resolve(entity_id, write=True)
         req = await get_request_json()
         try:
             commit = FileCommitService.create_commit(

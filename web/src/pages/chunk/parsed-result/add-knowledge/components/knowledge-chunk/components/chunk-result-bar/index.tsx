@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChunkTextMode } from '../../constant';
 interface ChunkResultBarProps {
+  canWrite?: boolean;
   className?: string;
   changeChunkTextMode: (mode: ChunkTextMode) => void;
   available: number | undefined;
@@ -23,6 +24,7 @@ interface ChunkResultBarProps {
   searchString?: string;
 }
 export default function ChunkResultBar({
+  canWrite = true,
   className,
   changeChunkTextMode,
   available,
@@ -74,10 +76,7 @@ export default function ChunkResultBar({
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-          >
+          <Button variant="outline" size="icon">
             <LucideFilter />
           </Button>
         </PopoverTrigger>
@@ -93,7 +92,12 @@ export default function ChunkResultBar({
         value={searchString}
       />
 
-      <Button variant="outline" size="icon" onClick={() => createChunk()}>
+      <Button
+        disabled={!canWrite}
+        variant="outline"
+        size="icon"
+        onClick={createChunk}
+      >
         <Plus size={44} />
       </Button>
     </div>

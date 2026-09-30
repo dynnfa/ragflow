@@ -19,7 +19,7 @@ from typing import Set
 
 from api.apps import current_user, login_required
 from api.db import UserTenantRole
-from api.db.db_models import UserTenant
+from api.db.db_models import DB, Knowledgebase, KnowledgebaseTeam, UserTenant
 from api.db.services.user_service import UserService, UserTenantService
 from api.utils.api_utils import (
     get_data_error_result,
@@ -146,7 +146,10 @@ async def rm(tenant_id):
         )
 
     try:
-        UserTenantService.filter_delete([UserTenant.tenant_id == tenant_id, UserTenant.user_id == user_id])
+        with DB.atomic():
+            UserTenant.delete().where(UserTenant.tenant_id == tenant_id, UserTenant.user_id == user_id).execute()
+            owned_kbs = Knowledgebase.select(Knowledgebase.id).where(Knowledgebase.created_by == user_id)
+            KnowledgebaseTeam.delete().where(KnowledgebaseTeam.team_id == tenant_id, KnowledgebaseTeam.kb_id.in_(owned_kbs)).execute()
         return get_json_result(data=True)
     except Exception as exc:
         return server_error_response(exc)

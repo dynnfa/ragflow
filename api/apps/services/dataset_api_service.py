@@ -28,7 +28,7 @@ from api.db.services.file_service import FileService
 from api.db.services.knowledgebase_service import KnowledgebaseService, validate_dataset_embedding_models
 from api.db.services.task_service import GRAPH_RAPTOR_FAKE_DOC_ID, TaskService
 from api.db.services.tenant_model_service import TenantModelService
-from api.db.services.user_service import TenantService, UserService, UserTenantService
+from api.db.services.user_service import TenantService, UserService
 from api.utils.api_utils import deep_merge, get_parser_config, remap_dictionary_keys, verify_embedding_availability
 from common import settings
 from common.constants import PAGERANK_FLD, FileSource, LLMType, RetCode, StatusEnum, TaskStatus
@@ -141,7 +141,7 @@ async def create_dataset(tenant_id: str, req: dict):
     ok, k = KnowledgebaseService.get_by_id(create_dict["id"])
     if not ok:
         return False, "Dataset created failed"
-    response_data = remap_dictionary_keys(k.to_dict())
+    response_data = remap_dictionary_keys(KnowledgebaseService.with_access([k.to_dict()], tenant_id)[0])
     return True, response_data
 
 
@@ -269,7 +269,7 @@ def get_dataset(dataset_id: str, tenant_id: str):
     if not ok:
         return False, "Invalid Dataset ID"
 
-    response_data = remap_dictionary_keys(kb.to_dict())
+    response_data = remap_dictionary_keys(KnowledgebaseService.with_access([kb.to_dict()], tenant_id)[0])
     response_data["size"] = DocumentService.get_total_size_by_kb_id(dataset_id)
     response_data["connectors"] = list(Connector2KbService.list_connectors(dataset_id))
     return True, response_data
@@ -314,13 +314,17 @@ async def update_dataset(tenant_id: str, dataset_id: str, req: dict):
     if not req:
         return False, "no properties were modified"
 
-    kbs = KnowledgebaseService.get_kb_by_id(dataset_id, tenant_id)
-    if not kbs:
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, f"User '{tenant_id}' lacks permission for dataset '{dataset_id}'"
 
     kb = KnowledgebaseService.get_or_none(id=dataset_id)
     if kb is None:
         return False, "Invalid Dataset ID"
+
+    try:
+        KnowledgebaseService.validate_sharing(tenant_id, req, dataset_id)
+    except ValueError as exc:
+        return False, str(exc)
 
     # Map auto_metadata_config into parser_config if present
     auto_meta = req.pop("auto_metadata_config", {})
@@ -417,7 +421,7 @@ async def update_dataset(tenant_id: str, dataset_id: str, req: dict):
     if errors:
         logging.error("Link KB errors: %s", errors)
 
-    response_data = remap_dictionary_keys(k.to_dict())
+    response_data = remap_dictionary_keys(KnowledgebaseService.with_access([k.to_dict()], tenant_id)[0])
     response_data["connectors"] = connectors
     return True, response_data
 
@@ -459,25 +463,16 @@ def list_datasets(tenant_id: str, args: dict):
         if not kbs:
             return False, f"User '{tenant_id}' lacks permission for dataset '{name}'"
     owner_ids = [owner_id.strip() for owner_id in args.get("owner_ids", []) if isinstance(owner_id, str) and owner_id.strip()]
-    if owner_ids:
-        tenants = TenantService.get_joined_tenants_by_user_id(tenant_id)
-        allowed_tenant_ids = {m["tenant_id"] for m in tenants}
-        allowed_tenant_ids.add(tenant_id)
-        tenant_ids = [owner_id for owner_id in owner_ids if owner_id in allowed_tenant_ids]
-        query_user_id = tenant_id if tenant_id in tenant_ids else ""
-    else:
-        tenants = TenantService.get_joined_tenants_by_user_id(tenant_id)
-        tenant_ids = [m["tenant_id"] for m in tenants]
-        query_user_id = tenant_id
     if kb_ids:
-        accessible_ids = KnowledgebaseService.get_accessible_ids([m["tenant_id"] for m in tenants], tenant_id, kb_ids)
+        accessible_ids = KnowledgebaseService.get_accessible_ids(tenant_id, kb_ids)
         denied_ids = [kb_id for kb_id in kb_ids if kb_id not in accessible_ids]
         if denied_ids:
             logging.warning("User '%s' lacks permission for datasets: '%s'", tenant_id, ", ".join(denied_ids))
         kb_ids = [kb_id for kb_id in kb_ids if kb_id in accessible_ids]
         if not kb_ids:
             return True, {"data": [], "total": 0}
-    kbs, total = KnowledgebaseService.get_list(tenant_ids, query_user_id, page, page_size, orderby, desc, kb_id, name, keywords, parser_id, kb_ids)
+    kbs, total = KnowledgebaseService.get_list(tenant_id, page, page_size, orderby, desc, kb_id, name, keywords, parser_id, kb_ids, owner_ids=owner_ids)
+    kbs = KnowledgebaseService.with_access(kbs, tenant_id)
     users = UserService.get_by_ids([m["tenant_id"] for m in kbs])
     user_map = {m.id: m.to_dict() for m in users}
 
@@ -511,9 +506,7 @@ def list_datasets(tenant_id: str, args: dict):
 
 
 def list_dataset_filters(tenant_id: str):
-    tenants = TenantService.get_joined_tenants_by_user_id(tenant_id)
-    tenant_ids = [m["tenant_id"] for m in tenants]
-    owners = KnowledgebaseService.get_owner_filter(tenant_ids, tenant_id)
+    owners = KnowledgebaseService.get_owner_filter(tenant_id)
     return True, {"filter": {"owner": owners}, "total": sum(owner["count"] for owner in owners)}
 
 
@@ -566,7 +559,7 @@ def delete_knowledge_graph(dataset_id: str, tenant_id: str):
     :param tenant_id: tenant ID
     :return: (success, result) or (success, error_message)
     """
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
     _, kb = KnowledgebaseService.get_by_id(dataset_id)
     from rag.graphrag.phase_markers import clear_phase_markers
@@ -598,7 +591,7 @@ def run_index(dataset_id: str, tenant_id: str, index_type: str):
 
     if not dataset_id:
         return False, 'Lack of "Dataset ID"'
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
 
     ok, kb = KnowledgebaseService.get_by_id(dataset_id)
@@ -695,11 +688,8 @@ def list_tags(dataset_id: str, tenant_id: str):
     if not KnowledgebaseService.accessible(dataset_id, tenant_id):
         return False, "no authorization"
 
-    tenants = UserTenantService.get_tenants_by_user_id(tenant_id)
-    tags = []
-    for tenant in tenants:
-        tags += settings.retriever.all_tags(tenant["tenant_id"], [dataset_id])
-    return True, tags
+    _, kb = KnowledgebaseService.get_by_id(dataset_id)
+    return True, settings.retriever.all_tags(kb.tenant_id, [dataset_id])
 
 
 def aggregate_tags(dataset_ids: list[str], tenant_id: str):
@@ -802,7 +792,7 @@ def delete_tags(dataset_id: str, tenant_id: str, tags: list[str]):
     if not dataset_id:
         return False, 'Lack of "Dataset ID"'
 
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
 
     ok, kb = KnowledgebaseService.get_by_id(dataset_id)
@@ -935,7 +925,7 @@ def delete_index(dataset_id: str, tenant_id: str, index_type: str, wipe: bool = 
     if not dataset_id:
         return False, 'Lack of "Dataset ID"'
 
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
 
     ok, kb = KnowledgebaseService.get_by_id(dataset_id)
@@ -1008,7 +998,7 @@ def rename_tag(dataset_id: str, tenant_id: str, from_tag: str, to_tag: str):
     if not dataset_id:
         return False, 'Lack of "Dataset ID"'
 
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
 
     ok, kb = KnowledgebaseService.get_by_id(dataset_id)
@@ -1039,7 +1029,6 @@ async def search(dataset_id: str, tenant_id: str, req: dict):
     from api.db.services.doc_metadata_service import DocMetadataService
     from api.db.services.llm_service import LLMBundle
     from api.db.services.search_service import SearchService
-    from api.db.services.user_service import UserTenantService
     from common.constants import LLMType
     from common.metadata_utils import apply_meta_data_filter
     from rag.app.tag import label_question
@@ -1127,14 +1116,7 @@ async def search(dataset_id: str, tenant_id: str, req: dict):
             metas_loader=lambda: DocMetadataService.get_flatted_meta_by_kbs([dataset_id]),
         )
 
-    tenant_ids = []
-    tenants = UserTenantService.query(user_id=tenant_id)
-    for tenant in tenants:
-        if KnowledgebaseService.query(tenant_id=tenant.tenant_id, id=dataset_id):
-            tenant_ids.append(tenant.tenant_id)
-            break
-    else:
-        return False, "Only owner of dataset authorized for this operation."
+    tenant_ids = [kb.tenant_id]
 
     _question = question
     if langs:
@@ -1435,7 +1417,6 @@ async def search_datasets(tenant_id: str, req: dict):
     from api.db.services.doc_metadata_service import DocMetadataService
     from api.db.services.llm_service import LLMBundle
     from api.db.services.search_service import SearchService
-    from api.db.services.user_service import UserTenantService
     from common.constants import LLMType
     from common.metadata_utils import apply_meta_data_filter
     from rag.app.tag import label_question
@@ -1530,14 +1511,7 @@ async def search_datasets(tenant_id: str, req: dict):
             metas_loader=lambda: DocMetadataService.get_flatted_meta_by_kbs(kb_ids),
         )
 
-    tenant_ids = []
-    tenants = UserTenantService.query(user_id=tenant_id)
-    for tenant in tenants:
-        if any(KnowledgebaseService.query(tenant_id=tenant.tenant_id, id=kb_id) for kb_id in kb_ids):
-            tenant_ids.append(tenant.tenant_id)
-            break
-    else:
-        return False, "Only owner of datasets authorized for this operation."
+    tenant_ids = list({kb.tenant_id for kb in kbs})
 
     kb = kbs[0]
     _question = question
@@ -3085,7 +3059,7 @@ async def delete_skills(dataset_id: str, tenant_id: str):
     Returns ``(True, {"deleted": <n>})`` on success. When the tenant index does
     not exist yet there is nothing to delete, so it succeeds with ``0``.
     """
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
     _, kb = KnowledgebaseService.get_by_id(dataset_id)
 
@@ -3177,7 +3151,7 @@ async def delete_skill(dataset_id: str, tenant_id: str, skill_kwd: str):
     3. If a parent exists, remove the deleted node from its ``children_kwd``.
     4. Prune the ``skill_all`` tree and rewrite the aggregate row.
     """
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
     _, kb = KnowledgebaseService.get_by_id(dataset_id)
 
@@ -3533,7 +3507,7 @@ async def delete_nav(dataset_id: str, tenant_id: str):
     Returns ``(True, {"deleted": <n>})``; succeeds with ``0`` when there is no
     index yet.
     """
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
     _, kb = KnowledgebaseService.get_by_id(dataset_id)
 
@@ -3567,7 +3541,7 @@ async def delete_nav_node(dataset_id: str, tenant_id: str, name: str):
         return True, {"deleted": 0}
     name = name.strip()
 
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
     _, kb = KnowledgebaseService.get_by_id(dataset_id)
 
@@ -3688,7 +3662,7 @@ async def generate_nav(
 
     Returns ``(True, {"deleted": <n>, "upserted": <n>})`` on success.
     """
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
 
     _, kb = KnowledgebaseService.get_by_id(dataset_id)
@@ -4781,7 +4755,7 @@ async def update_wiki_page(
     ``(True, None)`` when the row is missing, or
     ``(False, message)`` on authorization failure.
     """
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
     _, kb = KnowledgebaseService.get_by_id(dataset_id)
 
@@ -5481,7 +5455,7 @@ async def clear_wiki(dataset_id: str, tenant_id: str):
     Returns ``(True, {"deleted": {kwd: count_or_True}})`` on success or
     ``(False, str)`` on auth failure.
     """
-    if not KnowledgebaseService.accessible(dataset_id, tenant_id):
+    if not KnowledgebaseService.writable(dataset_id, tenant_id):
         return False, "no authorization"
     _, kb = KnowledgebaseService.get_by_id(dataset_id)
 

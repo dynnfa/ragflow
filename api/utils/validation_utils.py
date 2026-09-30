@@ -567,12 +567,20 @@ class CreateDatasetReq(Base):
     description: Annotated[str | None, Field(default=None, max_length=65535)]
     embedding_model: Annotated[str | None, Field(default=None, max_length=255, serialization_alias="embd_id")]
     permission: Annotated[Literal["me", "team"], Field(default="me", min_length=1, max_length=16)]
+    shared_team_ids: list[Annotated[str, StringConstraints(min_length=32, max_length=32)]] = Field(default_factory=list)
     parse_type: Annotated[int | None, Field(default=None, ge=0, le=64)]
     pipeline_id: Annotated[str | None, Field(default=None, min_length=32, max_length=32, serialization_alias="pipeline_id")]
     chunk_method: Annotated[str | None, Field(default=None, serialization_alias="parser_id")]
     language: Annotated[str | None, StringConstraints(strip_whitespace=True, min_length=1, max_length=32), Field(default=None)]
     parser_config: Annotated[ParserConfig | None, Field(default=None)]
     auto_metadata_config: Annotated[AutoMetadataConfig | None, Field(default=None)]
+
+    @model_validator(mode="before")
+    @classmethod
+    def derive_sharing_scope(cls, data):
+        if isinstance(data, dict) and "permission" not in data and data.get("shared_team_ids"):
+            return {**data, "permission": "team"}
+        return data
 
     @field_validator("pipeline_id", mode="before")
     @classmethod

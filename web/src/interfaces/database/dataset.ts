@@ -37,6 +37,8 @@ export interface IDataset {
   parser_config: Parserconfig;
   parser_id?: string;
   permission: string;
+  shared_team_ids?: string[];
+  can_write?: boolean;
   pipeline_id: string;
   raptor_task_finish_at: string;
   raptor_task_id: string;

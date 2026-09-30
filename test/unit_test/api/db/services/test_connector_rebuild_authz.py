@@ -39,7 +39,7 @@ from api.db.services.file_service import FileService
 
 @pytest.mark.p2
 def test_rebuild_rejects_kb_the_caller_cannot_access(monkeypatch):
-    monkeypatch.setattr(KnowledgebaseService, "accessible", staticmethod(lambda kb_id, uid: False))
+    monkeypatch.setattr(KnowledgebaseService, "writable", staticmethod(lambda kb_id, uid: False))
 
     with pytest.raises(ConnectorAuthorizationError, match="no authorization"):
         ConnectorService.rebuild("kb-foreign", "conn-1", "user-1")
@@ -47,7 +47,7 @@ def test_rebuild_rejects_kb_the_caller_cannot_access(monkeypatch):
 
 @pytest.mark.p2
 def test_rebuild_rejects_kb_the_connector_is_not_bound_to(monkeypatch):
-    monkeypatch.setattr(KnowledgebaseService, "accessible", staticmethod(lambda kb_id, uid: True))
+    monkeypatch.setattr(KnowledgebaseService, "writable", staticmethod(lambda kb_id, uid: True))
     monkeypatch.setattr(Connector2KbService, "query", staticmethod(lambda **kwargs: []))
 
     with pytest.raises(ConnectorAuthorizationError, match="Connector is not bound to this knowledge base."):
@@ -58,7 +58,7 @@ def test_rebuild_rejects_kb_the_connector_is_not_bound_to(monkeypatch):
 def test_rebuild_runs_only_after_both_guards_pass(monkeypatch):
     touched = []
 
-    monkeypatch.setattr(KnowledgebaseService, "accessible", staticmethod(lambda kb_id, uid: True))
+    monkeypatch.setattr(KnowledgebaseService, "writable", staticmethod(lambda kb_id, uid: True))
     monkeypatch.setattr(Connector2KbService, "query", staticmethod(lambda **kwargs: [object()]))
     monkeypatch.setattr(
         ConnectorService,

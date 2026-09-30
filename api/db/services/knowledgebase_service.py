@@ -18,11 +18,11 @@ from datetime import datetime
 from peewee import JOIN, fn
 
 from api.constants import DATASET_NAME_LIMIT
-from api.db import TenantPermission
-from api.db.db_models import DB, Document, Knowledgebase, User, UserCanvas
+from api.db import UserTenantRole
+from api.db.db_models import DB, Document, Knowledgebase, KnowledgebaseTeam, Tenant, User, UserCanvas, UserTenant
 from api.db.joint_services.tenant_model_service import get_composite_model_name_by_ids
 from api.db.services import duplicate_name
-from api.db.services.common_service import CommonService
+from api.db.services.common_service import CommonService, retry_db_operation
 from api.db.services.user_service import TenantService
 from api.utils.api_utils import get_data_error_result, get_parser_config
 from common.constants import StatusEnum
@@ -115,50 +115,120 @@ class KnowledgebaseService(CommonService):
     model = Knowledgebase
 
     @classmethod
-    def _visibility_and_status_filter(cls, joined_tenant_ids, user_id):
-        """
-        Build a Peewee filter expression representing knowledgebase visibility
-        for a given user, combined with a valid-status constraint.
+    def _team_ids_for_user(cls, user_id):
+        return (
+            Tenant.select(Tenant.id)
+            .join(UserTenant, on=(UserTenant.tenant_id == Tenant.id))
+            .where(
+                UserTenant.user_id == user_id,
+                UserTenant.status == StatusEnum.VALID.value,
+                UserTenant.role.in_([UserTenantRole.OWNER, UserTenantRole.NORMAL]),
+                Tenant.status == StatusEnum.VALID.value,
+            )
+        )
 
-        Visibility rules:
-        - Team KBs (`permission == TenantPermission.TEAM`) owned by any tenant in `joined_tenant_ids`
-        - KBs owned by the current user (`tenant_id == user_id`)
-        Always constrained to `StatusEnum.VALID`.
-        """
-        return ((cls.model.tenant_id.in_(joined_tenant_ids) & (cls.model.permission == TenantPermission.TEAM.value)) | (cls.model.tenant_id == user_id)) & (cls.model.status == StatusEnum.VALID.value)
+    @classmethod
+    def _visibility_and_status_filter(cls, user_id):
+        grants = KnowledgebaseTeam.select(KnowledgebaseTeam.kb_id).where(KnowledgebaseTeam.team_id.in_(cls._team_ids_for_user(user_id)))
+        return ((cls.model.tenant_id == user_id) | cls.model.id.in_(grants)) & (cls.model.status == StatusEnum.VALID.value)
 
     @classmethod
     @DB.connection_context()
-    def accessible4deletion(cls, kb_id, user_id):
-        """Check if a dataset can be deleted by a specific user.
+    def writable(cls, kb_id, user_id):
+        return (
+            cls.model.select()
+            .where(
+                cls.model.id == kb_id,
+                cls.model.created_by == user_id,
+                cls.model.status == StatusEnum.VALID.value,
+            )
+            .exists()
+        )
 
-        This method verifies whether a user has permission to delete a dataset
-        by checking if they are the creator of that dataset.
+    @classmethod
+    @DB.connection_context()
+    def validate_sharing(cls, user_id, data, kb_id=None):
+        """Normalize the API scope; explicit team grants own visibility."""
+        if "shared_team_ids" not in data and "permission" not in data:
+            return
+        permission = data.get("permission")
+        if permission is not None and permission not in ("me", "team"):
+            raise ValueError("permission must be 'me' or 'team'")
+        if permission == "me":
+            if data.get("shared_team_ids"):
+                raise ValueError("Private datasets cannot have shared teams")
+            team_ids = []
+        else:
+            team_ids = data.get("shared_team_ids")
+            if team_ids is None:
+                if kb_id:
+                    team_ids = [g.team_id for g in KnowledgebaseTeam.select().where(KnowledgebaseTeam.kb_id == kb_id)]
+                else:
+                    team_ids = []
+            if not isinstance(team_ids, list) or any(not isinstance(team, str) or not team for team in team_ids):
+                raise ValueError("shared_team_ids must be a list of team IDs")
+            team_ids = sorted(set(team_ids))
+            if permission == "team" and not team_ids:
+                raise ValueError("Select at least one team to share the dataset")
+        allowed = {team.id for team in cls._team_ids_for_user(user_id)}
+        if not set(team_ids).issubset(allowed):
+            raise ValueError("You can only share with teams you own or have joined")
+        data["shared_team_ids"] = team_ids
+        data["permission"] = "team" if team_ids else "me"
 
-        Args:
-            kb_id (str): The unique identifier of the dataset to check.
-            user_id (str): The unique identifier of the user attempting the deletion.
+    @classmethod
+    def _replace_team_grants(cls, kb_id, team_ids):
+        KnowledgebaseTeam.delete().where(KnowledgebaseTeam.kb_id == kb_id).execute()
+        for team_id in team_ids:
+            KnowledgebaseTeam.create(kb_id=kb_id, team_id=team_id)
 
-        Returns:
-            bool: True if the user has permission to delete the dataset,
-                  False if the user doesn't have permission or the dataset doesn't exist.
+    @classmethod
+    @DB.connection_context()
+    def save(cls, **kwargs):
+        cls.validate_sharing(kwargs["created_by"], kwargs)
+        team_ids = kwargs.pop("shared_team_ids", [])
+        kwargs["permission"] = "me"
+        with DB.atomic():
+            result = cls.model(**kwargs).save(force_insert=True)
+            cls._replace_team_grants(kwargs["id"], team_ids)
+        return result
 
-        Example:
-            >>> KnowledgebaseService.accessible4deletion("kb123", "user456")
-            True
+    @classmethod
+    @DB.connection_context()
+    @retry_db_operation
+    def update_by_id(cls, pid, data):
+        data = dict(data)
+        team_ids = data.pop("shared_team_ids", None)
+        if team_ids is not None:
+            # Grant targets belong to knowledgebase_team. The owner-team flag
+            # in the shared table must not expose content to unselected teams.
+            data["permission"] = "me"
+        with DB.atomic():
+            result = cls._update_by_id(pid, data)
+            if result and team_ids is not None:
+                cls._replace_team_grants(pid, team_ids)
+        return result
 
-        Note:
-            - This method only checks creator permissions
-            - A return value of False can mean either:
-                1. The dataset doesn't exist
-                2. The user is not the creator of the dataset
-        """
-        # Check if a dataset can be deleted by a user
-        docs = cls.model.select(cls.model.id).where(cls.model.id == kb_id, cls.model.created_by == user_id).paginate(0, 1)
-        docs = docs.dicts()
-        if not docs:
-            return False
-        return True
+    @classmethod
+    @DB.connection_context()
+    def delete_by_id(cls, pid):
+        with DB.atomic():
+            result = cls.model.delete().where(cls.model.id == pid).execute()
+            if result:
+                KnowledgebaseTeam.delete().where(KnowledgebaseTeam.kb_id == pid).execute()
+        return result
+
+    @classmethod
+    @DB.connection_context()
+    def with_access(cls, datasets, user_id):
+        grants = {}
+        for grant in KnowledgebaseTeam.select().where(KnowledgebaseTeam.kb_id.in_([kb["id"] for kb in datasets])):
+            grants.setdefault(grant.kb_id, []).append(grant.team_id)
+        for kb in datasets:
+            kb["shared_team_ids"] = sorted(grants.get(kb["id"], []))
+            kb["permission"] = "team" if kb["shared_team_ids"] else "me"
+            kb["can_write"] = kb["created_by"] == user_id
+        return datasets
 
     @classmethod
     @DB.connection_context()
@@ -206,101 +276,6 @@ class KnowledgebaseService(CommonService):
         doc_ids = list(doc_ids.dicts())
         doc_ids = [doc["document_id"] for doc in doc_ids]
         return doc_ids
-
-    @classmethod
-    @DB.connection_context()
-    def get_by_tenant_ids(cls, joined_tenant_ids, user_id, page_number, items_per_page, orderby, desc, keywords, parser_id=None):
-        # Get knowledge bases by tenant IDs with pagination and filtering
-        # Args:
-        #     joined_tenant_ids: List of tenant IDs
-        #     user_id: Current user ID
-        #     page_number: Page number for pagination
-        #     items_per_page: Number of items per page
-        #     orderby: Field to order by
-        #     desc: Boolean indicating descending order
-        #     keywords: Search keywords
-        #     parser_id: Optional parser ID filter
-        # Returns:
-        #     Tuple of (knowledge_base_list, total_count)
-        fields = [
-            cls.model.id,
-            cls.model.avatar,
-            cls.model.name,
-            cls.model.language,
-            cls.model.description,
-            cls.model.tenant_id,
-            cls.model.permission,
-            cls.model.doc_num,
-            cls.model.token_num,
-            cls.model.chunk_num,
-            cls.model.parser_id,
-            cls.model.embd_id,
-            User.nickname,
-            User.avatar.alias("tenant_avatar"),
-            cls.model.update_time,
-        ]
-        if keywords:
-            kbs = (
-                cls.model.select(*fields)
-                .join(User, on=(cls.model.tenant_id == User.id))
-                .where(
-                    cls._visibility_and_status_filter(joined_tenant_ids, user_id),
-                    fn.LOWER(cls.model.name).contains(keywords.lower()),
-                )
-            )
-        else:
-            kbs = (
-                cls.model.select(*fields)
-                .join(User, on=(cls.model.tenant_id == User.id))
-                .where(
-                    cls._visibility_and_status_filter(joined_tenant_ids, user_id),
-                )
-            )
-        if parser_id:
-            kbs = kbs.where(cls.model.parser_id == parser_id)
-        if desc:
-            kbs = kbs.order_by(cls.model.getter_by(orderby).desc())
-        else:
-            kbs = kbs.order_by(cls.model.getter_by(orderby).asc())
-
-        count = kbs.count()
-
-        if page_number and items_per_page:
-            kbs = kbs.paginate(page_number, items_per_page)
-
-        return list(kbs.dicts()), count
-
-    @classmethod
-    @DB.connection_context()
-    def get_all_kb_by_tenant_ids(cls, tenant_ids, user_id):
-        # will get all permitted kb, be cautious.
-        fields = [
-            cls.model.name,
-            cls.model.avatar,
-            cls.model.language,
-            cls.model.permission,
-            cls.model.doc_num,
-            cls.model.token_num,
-            cls.model.chunk_num,
-            cls.model.status,
-            cls.model.create_date,
-            cls.model.update_date,
-        ]
-        # find team kb and owned kb
-        kbs = cls.model.select(*fields).where(cls._visibility_and_status_filter(tenant_ids, user_id))
-        # sort by create_time asc
-        kbs = kbs.order_by(cls.model.create_time.asc())
-        # maybe cause slow query by deep paginate, optimize later.
-        offset, limit = 0, 50
-        res = []
-        while True:
-            kb_batch = kbs.offset(offset).limit(limit)
-            _temp = list(kb_batch.dicts())
-            if not _temp:
-                break
-            res.extend(_temp)
-            offset += limit
-        return res
 
     @classmethod
     @DB.connection_context()
@@ -484,6 +459,11 @@ class KnowledgebaseService(CommonService):
         if not ok:
             return False, get_data_error_result(message="Tenant not found.")
 
+        try:
+            cls.validate_sharing(tenant_id, kwargs)
+        except ValueError as exc:
+            return False, str(exc)
+
         # Build payload
         kb_id = get_uuid()
         payload = {
@@ -503,10 +483,9 @@ class KnowledgebaseService(CommonService):
 
     @classmethod
     @DB.connection_context()
-    def get_list(cls, joined_tenant_ids, user_id, page_number, items_per_page, orderby, desc, id, name, keywords, parser_id=None, ids=None):
+    def get_list(cls, user_id, page_number, items_per_page, orderby, desc, id, name, keywords, parser_id=None, ids=None, owner_ids=None):
         # Get list of knowledge bases with filtering and pagination
         # Args:
-        #     joined_tenant_ids: List of tenant IDs
         #     user_id: Current user ID
         #     page_number: Page number for pagination
         #     items_per_page: Number of items per page
@@ -531,7 +510,9 @@ class KnowledgebaseService(CommonService):
         if parser_id:
             kbs = kbs.where(cls.model.parser_id == parser_id)
 
-        kbs = kbs.where(cls._visibility_and_status_filter(joined_tenant_ids, user_id))
+        kbs = kbs.where(cls._visibility_and_status_filter(user_id))
+        if owner_ids:
+            kbs = kbs.where(cls.model.tenant_id.in_(owner_ids))
 
         if desc:
             kbs = kbs.order_by(cls.model.getter_by(orderby).desc())
@@ -545,13 +526,13 @@ class KnowledgebaseService(CommonService):
 
     @classmethod
     @DB.connection_context()
-    def get_accessible_ids(cls, joined_tenant_ids, user_id, ids):
-        kbs = cls.model.select(cls.model.id).where(cls.model.id.in_(ids), cls._visibility_and_status_filter(joined_tenant_ids, user_id))
+    def get_accessible_ids(cls, user_id, ids):
+        kbs = cls.model.select(cls.model.id).where(cls.model.id.in_(ids), cls._visibility_and_status_filter(user_id))
         return {kb.id for kb in kbs}
 
     @classmethod
     @DB.connection_context()
-    def get_owner_filter(cls, joined_tenant_ids, user_id):
+    def get_owner_filter(cls, user_id):
         owners = (
             cls.model.select(
                 cls.model.tenant_id.alias("id"),
@@ -559,7 +540,7 @@ class KnowledgebaseService(CommonService):
                 fn.COUNT(cls.model.id).alias("count"),
             )
             .join(User, on=(cls.model.tenant_id == User.id))
-            .where(cls._visibility_and_status_filter(joined_tenant_ids, user_id))
+            .where(cls._visibility_and_status_filter(user_id))
             .group_by(cls.model.tenant_id, User.nickname)
         )
         return list(owners.dicts())
@@ -567,27 +548,23 @@ class KnowledgebaseService(CommonService):
     @classmethod
     @DB.connection_context()
     def accessible(cls, kb_id, user_id):
-        # Check if a dataset is accessible by a user
-        # Args:
-        #     kb_id: Knowledge base ID
-        #     user_id: User ID
-        # Returns:
-        #     Boolean indicating accessibility
-        e, kb = cls.get_by_id(kb_id)
-        if not e:
-            return False
+        return (
+            cls.model.select()
+            .where(
+                cls.model.id == kb_id,
+                cls._visibility_and_status_filter(user_id),
+            )
+            .exists()
+        )
 
-        if kb.status != StatusEnum.VALID.value:
-            return False
-
-        if kb.tenant_id == user_id:
-            return True
-
-        if kb.permission != TenantPermission.TEAM.value:
-            return False
-
-        joined_tenants = TenantService.get_joined_tenants_by_user_id(user_id)
-        return any(tenant["tenant_id"] == kb.tenant_id for tenant in joined_tenants)
+    @classmethod
+    def require_access(cls, kb_ids, user_id):
+        """Recheck configured datasets when retrieval executes."""
+        if not kb_ids:
+            return
+        denied = set(kb_ids) - cls.get_accessible_ids(user_id, kb_ids)
+        if denied:
+            raise PermissionError("No authorization for selected datasets")
 
     @classmethod
     @DB.connection_context()
@@ -601,7 +578,7 @@ class KnowledgebaseService(CommonService):
         e, kb = cls.get_by_id(kb_id)
         if not e or not cls.accessible(kb_id, user_id):
             return []
-        return [kb.to_dict()]
+        return cls.with_access([kb.to_dict()], user_id)
 
     @classmethod
     @DB.connection_context()
@@ -615,7 +592,7 @@ class KnowledgebaseService(CommonService):
         kbs = cls.query(name=kb_name, status=StatusEnum.VALID.value)
         for kb in kbs:
             if cls.accessible(kb.id, user_id):
-                return [kb.to_dict()]
+                return cls.with_access([kb.to_dict()], user_id)
         return []
 
     @classmethod

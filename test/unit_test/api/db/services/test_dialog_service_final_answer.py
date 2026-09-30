@@ -79,6 +79,11 @@ _install_cv2_stub_if_unavailable()
 from api.db.services import dialog_service  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def authorized_datasets(monkeypatch):
+    monkeypatch.setattr(dialog_service.KnowledgebaseService, "get_accessible_ids", lambda user_id, ids: set(ids))
+
+
 # ---------------------------------------------------------------------------
 # Shared stubs
 # ---------------------------------------------------------------------------

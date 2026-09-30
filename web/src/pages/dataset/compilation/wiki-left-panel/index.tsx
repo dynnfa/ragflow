@@ -1,3 +1,4 @@
+import { useKnowledgeBaseContext } from '../../contexts/knowledge-base-context';
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -41,6 +42,7 @@ export function WikiLeftPanel({
   traceData,
 }: WikiLeftPanelProps) {
   const { t } = useTranslation();
+  const { knowledgeBase } = useKnowledgeBaseContext();
   const isGo = useIsGoBackend();
 
   const { open, setOpen, handleConfirm, loading } = useWikiClear({
@@ -69,7 +71,7 @@ export function WikiLeftPanel({
 
   return (
     <aside className="size-full flex flex-col p-5">
-      {!isGo && (
+      {!isGo && knowledgeBase?.can_write !== false && (
         <div className="flex items-center justify-between pb-5">
           <CompilationUpdateButton
             traceData={traceData}

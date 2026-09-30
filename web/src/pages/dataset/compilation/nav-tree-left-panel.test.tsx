@@ -181,3 +181,7 @@ describe('NavTreeLeftPanel', () => {
     );
   });
 });
+
+jest.mock('../contexts/knowledge-base-context', () => ({
+  useKnowledgeBaseContext: () => ({ knowledgeBase: { can_write: true } }),
+}));

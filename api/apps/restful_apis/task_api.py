@@ -60,7 +60,7 @@ async def _cancel_task(task_id):
         return get_json_result(data=True)
 
     # Cancelling flips the document to CANCEL and sets the worker cancel flag,
-    # so the caller must be able to access the dataset that owns the document -
+    # so the caller must be able to modify the dataset that owns the document -
     # otherwise any logged-in user could stop another tenant's parsing tasks by
     # guessing a task id. Tasks bound to fake doc ids (canvas debug,
     # graph/raptor) carry no resolvable document and are cancelled through the
@@ -70,10 +70,10 @@ async def _cancel_task(task_id):
     if doc_id and doc_id not in (CANVAS_DEBUG_DOC_ID, GRAPH_RAPTOR_FAKE_DOC_ID):
         from api.db.services.document_service import DocumentService
 
-        # DocumentService.accessible fails closed when the document no longer
+        # DocumentService.writable fails closed when the document no longer
         # resolves, so a task whose document is gone cannot be cancelled cross
         # tenant.
-        if not DocumentService.accessible(doc_id, current_user.id):
+        if not DocumentService.writable(doc_id, current_user.id):
             logging.warning("task cancel denied: task_id=%s user_id=%s", task_id, current_user.id)
             return get_json_result(data=False, code=RetCode.AUTHENTICATION_ERROR, message="no authorization")
         _, doc = DocumentService.get_by_id(doc_id)

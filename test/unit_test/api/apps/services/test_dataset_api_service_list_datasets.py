@@ -139,6 +139,7 @@ def _load_list_datasets_module(monkeypatch, *, kbs, parsing_status_by_kb):
         monkeypatch,
         "api.db.services.knowledgebase_service",
         KnowledgebaseService=SimpleNamespace(
+            with_access=lambda rows, user_id: rows,
             get_list=get_list_mock,
             get_accessible_ids=get_accessible_ids_mock,
         ),
@@ -319,8 +320,8 @@ def test_list_datasets_with_ids_filters_query_once(monkeypatch):
 
     assert ok is True
     assert payload["total"] == 2
-    module.KnowledgebaseService.get_accessible_ids.assert_called_once_with(["tenant-1"], "tenant-1", ["kb-a", "kb-b"])
-    get_list_mock.assert_called_once_with(["tenant-1"], "tenant-1", 1, 30, "create_time", True, None, None, "", None, ["kb-a", "kb-b"])
+    module.KnowledgebaseService.get_accessible_ids.assert_called_once_with("tenant-1", ["kb-a", "kb-b"])
+    get_list_mock.assert_called_once_with("tenant-1", 1, 30, "create_time", True, None, None, "", None, ["kb-a", "kb-b"], owner_ids=[])
 
 
 def test_list_datasets_with_include_parsing_status_false_skips_helper(monkeypatch):

@@ -18,6 +18,7 @@ import { ChunkTextMode } from '../../constant';
 import styles from './index.module.less';
 
 interface IProps {
+  canWrite?: boolean;
   item: IChunk;
   checked: boolean;
   switchChunk: (available?: number, chunkIds?: string[]) => void;
@@ -30,6 +31,7 @@ interface IProps {
 }
 
 const ChunkCard = ({
+  canWrite = true,
   item,
   checked,
   handleCheckboxClick,
@@ -54,7 +56,7 @@ const ChunkCard = ({
   };
 
   const handleContentDoubleClick = () => {
-    editChunk(item.chunk_id);
+    if (canWrite) editChunk(item.chunk_id);
   };
 
   const handleContentClick = () => {
@@ -89,6 +91,7 @@ const ChunkCard = ({
 
       <div className="flex items-start justify-between gap-2.5">
         <Checkbox
+          disabled={!canWrite}
           className="mt-1"
           onCheckedChange={handleCheck}
           checked={checked}
@@ -141,6 +144,7 @@ const ChunkCard = ({
 
         <div>
           <Switch
+            disabled={!canWrite}
             checked={enabled}
             onCheckedChange={onChange}
             aria-readonly

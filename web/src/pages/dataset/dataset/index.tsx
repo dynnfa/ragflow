@@ -45,6 +45,7 @@ export default function Dataset() {
     documentUploadLoading,
   } = useHandleUploadDocument();
   const { knowledgeBase } = useKnowledgeBaseContext();
+  const canWrite = knowledgeBase?.can_write !== false;
   const {
     searchString,
     documents,
@@ -171,7 +172,7 @@ export default function Dataset() {
         >
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="default">
+              <Button size="default" disabled={!canWrite}>
                 <LucidePlus />
                 {t('knowledgeDetails.addFile')}
               </Button>
@@ -188,7 +189,7 @@ export default function Dataset() {
           </DropdownMenu>
         </ListFilterBar>
 
-        {rowSelectionIsEmpty || (
+        {canWrite && !rowSelectionIsEmpty && (
           <BulkOperateBar
             className="!mt-2.5 !-mb-2.5"
             list={updatedList as BulkOperateItemType[]}

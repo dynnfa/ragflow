@@ -280,6 +280,10 @@ class CommonService:
     @DB.connection_context()
     @retry_db_operation
     def update_by_id(cls, pid, data):
+        return cls._update_by_id(pid, data)
+
+    @classmethod
+    def _update_by_id(cls, pid, data):
         # Update a single record by ID
         # Args:
         #     pid: Record ID

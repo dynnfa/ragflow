@@ -48,8 +48,11 @@ import {
 import { useClearSelectionOnPageChange } from '@/hooks/logic-hooks/use-clear-selection-on-page-change';
 import { getExtension } from '@/utils/document-util';
 import { LucideArrowBigLeft } from 'lucide-react';
+import { useFetchKnowledgeBaseConfiguration } from '@/hooks/use-knowledge-request';
 
 function Chunk() {
+  const { data: knowledgeBase } = useFetchKnowledgeBaseConfiguration();
+  const canWrite = knowledgeBase.can_write !== false;
   const [filterChunkIds, setFilterChunkIds] = useState<string[]>([]);
   const [selectedChunkIds, setSelectedChunkIds] = useState<string[]>([]);
   // The artifact tree publishes its claims / evidence content upward; the page
@@ -339,6 +342,7 @@ function Chunk() {
                       role="toolbar"
                     >
                       <ChunkResultBar
+                        canWrite={canWrite}
                         className="@4xl:order-2"
                         handleInputChange={handleInputChange}
                         searchString={searchString}
@@ -349,17 +353,20 @@ function Chunk() {
                         handleSetAvailable={handleSetAvailable}
                       />
 
-                      <CheckboxSets
-                        className="h-8"
-                        selectAllChunk={selectAllChunk}
-                        switchChunk={handleSwitchChunk}
-                        removeChunk={handleRemoveChunk}
-                        checked={selectedChunkIds.length === data.length}
-                        selectedChunkIds={selectedChunkIds}
-                      />
+                      {canWrite && (
+                        <CheckboxSets
+                          className="h-8"
+                          selectAllChunk={selectAllChunk}
+                          switchChunk={handleSwitchChunk}
+                          removeChunk={handleRemoveChunk}
+                          checked={selectedChunkIds.length === data.length}
+                          selectedChunkIds={selectedChunkIds}
+                        />
+                      )}
                     </div>
 
                     <ChunkVirtualList
+                      canWrite={canWrite}
                       key={listKey}
                       items={chunkList}
                       selectedChunkId={selectedChunkId}
@@ -407,6 +414,7 @@ function Chunk() {
 }
 
 interface ChunkVirtualListProps {
+  canWrite: boolean;
   items: IChunk[];
   selectedChunkId?: string;
   selectedChunkIds: string[];
@@ -423,6 +431,7 @@ interface ChunkVirtualListProps {
 // a fresh search starts from estimates instead of the previous set's stale
 // per-index measured heights that made cards overlap.
 function ChunkVirtualList({
+  canWrite,
   items,
   selectedChunkId,
   selectedChunkIds,
@@ -468,6 +477,7 @@ function ChunkVirtualList({
               className="pb-4"
             >
               <ChunkCard
+                canWrite={canWrite}
                 item={item}
                 editChunk={editChunk}
                 checked={selectedChunkIds.some((x) => x === item.chunk_id)}

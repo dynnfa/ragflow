@@ -9,6 +9,7 @@ import {
   useFetchDocumentClaims,
 } from '@/hooks/use-document-request';
 import { useIsGoBackend } from '@/utils/backend-variant';
+import { useFetchKnowledgeBaseConfiguration } from '@/hooks/use-knowledge-request';
 import { Trash2 } from 'lucide-react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +46,7 @@ function Representation({
 }: RepresentationProps) {
   const { t } = useTranslation();
   const isGo = useIsGoBackend();
+  const { data: knowledgeBase } = useFetchKnowledgeBaseConfiguration();
   const { deleteDocumentStructureGraph, loading: deleting } =
     useDeleteDocumentStructureGraph();
 
@@ -236,7 +238,7 @@ function Representation({
             />
           )}
         </div>
-        {templates.length > 0 && !isGo && (
+        {templates.length > 0 && !isGo && knowledgeBase.can_write !== false && (
           <ConfirmDeleteDialog onOk={handleDelete}>
             <Button
               variant="ghost"

@@ -50,6 +50,7 @@ export default function DatasetSettings() {
       name: '',
       chunk_method: DocumentParserType.Naive,
       permission: PermissionRole.Me,
+      shared_team_ids: [],
       language: 'English',
       parser_config: {
         layout_recognize: DocumentType.DeepDOC,
@@ -232,62 +233,67 @@ export default function DatasetSettings() {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="flex flex-col"
               >
-                <div className="flex-1 h-0 w-[768px] px-5 pt-5 overflow-y-auto scrollbar-auto">
-                  <MainContainer className="text-text-secondary">
-                    <div className="text-base font-medium text-text-primary">
-                      {t('knowledgeConfiguration.baseInfo')}
-                    </div>
-                    <GeneralForm></GeneralForm>
+                <fieldset
+                  disabled={knowledgeDetails.can_write === false}
+                  className="contents"
+                >
+                  <div className="flex-1 h-0 w-[768px] px-5 pt-5 overflow-y-auto scrollbar-auto">
+                    <MainContainer className="text-text-secondary">
+                      <div className="text-base font-medium text-text-primary">
+                        {t('knowledgeConfiguration.baseInfo')}
+                      </div>
+                      <GeneralForm></GeneralForm>
 
-                    <Divider />
-                    <div className="text-base font-medium text-text-primary">
-                      {t('knowledgeConfiguration.dataPipeline')}
-                    </div>
-                    <ParseTypeItem line={1} name="parse_type" />
-                    {parseType === ParseType.BuiltIn && (
-                      <ChunkMethodItem
-                        line={1}
-                        name="chunk_method"
-                      ></ChunkMethodItem>
-                    )}
-                    {parseType === ParseType.Pipeline && (
-                      <DataFlowSelect
-                        isMult={false}
-                        showToDataPipeline={true}
-                        formFieldName="pipeline_id"
-                        layout={FormLayout.Horizontal}
-                      />
-                    )}
+                      <Divider />
+                      <div className="text-base font-medium text-text-primary">
+                        {t('knowledgeConfiguration.dataPipeline')}
+                      </div>
+                      <ParseTypeItem line={1} name="parse_type" />
+                      {parseType === ParseType.BuiltIn && (
+                        <ChunkMethodItem
+                          line={1}
+                          name="chunk_method"
+                        ></ChunkMethodItem>
+                      )}
+                      {parseType === ParseType.Pipeline && (
+                        <DataFlowSelect
+                          isMult={false}
+                          showToDataPipeline={true}
+                          formFieldName="pipeline_id"
+                          layout={FormLayout.Horizontal}
+                        />
+                      )}
 
-                    {parseType === ParseType.BuiltIn && <ChunkMethodForm />}
+                      {parseType === ParseType.BuiltIn && <ChunkMethodForm />}
 
-                    {/* <LinkDataPipeline
+                      {/* <LinkDataPipeline
                     data={pipelineData}
                     handleLinkOrEditSubmit={handleLinkOrEditSubmit}
                   /> */}
-                    <Divider />
-                    <LinkDataSource
-                      data={sourceData}
-                      handleLinkOrEditSubmit={handleLinkOrEditSubmit}
-                      unbindFunc={unbindFunc}
-                      handleAutoParse={handleAutoParse}
-                    />
-                  </MainContainer>
-                </div>
+                      <Divider />
+                      <LinkDataSource
+                        data={sourceData}
+                        handleLinkOrEditSubmit={handleLinkOrEditSubmit}
+                        unbindFunc={unbindFunc}
+                        handleAutoParse={handleAutoParse}
+                      />
+                    </MainContainer>
+                  </div>
 
-                <div className="p-5 text-right items-center flex justify-end gap-3 w-[768px]">
-                  <Button
-                    type="reset"
-                    variant="transparent"
-                    onClick={() => {
-                      form.reset();
-                    }}
-                  >
-                    {t('knowledgeConfiguration.cancel')}
-                  </Button>
+                  <div className="p-5 text-right items-center flex justify-end gap-3 w-[768px]">
+                    <Button
+                      type="reset"
+                      variant="transparent"
+                      onClick={() => {
+                        form.reset();
+                      }}
+                    >
+                      {t('knowledgeConfiguration.cancel')}
+                    </Button>
 
-                  <SavingButton />
-                </div>
+                    <SavingButton />
+                  </div>
+                </fieldset>
               </form>
             </Form>
           </DataSetContext.Provider>

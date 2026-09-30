@@ -150,7 +150,8 @@ export function DatasetStructureView({ kind }: DatasetStructureViewProps) {
     await runGenerate({ type: generateType }).catch(() => {});
   }, [structureStatus, runGenerate, generateType]);
 
-  const canGenerate = (knowledgeBase?.chunk_count ?? 0) > 0;
+  const canWrite = knowledgeBase?.can_write !== false;
+  const canGenerate = canWrite && (knowledgeBase?.chunk_count ?? 0) > 0;
 
   if (loading && !data) {
     return <CompilationLoadingCard />;
@@ -169,7 +170,7 @@ export function DatasetStructureView({ kind }: DatasetStructureViewProps) {
   return (
     <Card className="flex-1 min-h-0 overflow-hidden flex border-border-button rounded-xl flex-col">
       <div className="flex justify-between gap-4 px-4 pt-4">
-        {!isGo && (
+        {!isGo && canWrite && (
           <div className="flex items-center gap-2">
             <ConfirmDeleteDialog
               title={t('knowledgeCompilation.deleteStructureConfirm', {

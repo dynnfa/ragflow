@@ -1,3 +1,4 @@
+import { useKnowledgeBaseContext } from '../contexts/knowledge-base-context';
 import type { IArtifact, IWikiCommit } from '@/interfaces/database/dataset';
 import { Download } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +32,7 @@ export function WikiDetailToolbar({
   onSelectVersion,
 }: WikiDetailToolbarProps) {
   const { t } = useTranslation();
+  const { knowledgeBase } = useKnowledgeBaseContext();
 
   if (isDirty) {
     return (
@@ -43,7 +45,12 @@ export function WikiDetailToolbar({
         >
           {t('common.cancel')}
         </Button>
-        <Button type="button" size="sm" onClick={onCommitClick}>
+        <Button
+          type="button"
+          size="sm"
+          onClick={onCommitClick}
+          disabled={knowledgeBase?.can_write === false}
+        >
           {t('knowledgeCompilation.commit')}
         </Button>
       </div>

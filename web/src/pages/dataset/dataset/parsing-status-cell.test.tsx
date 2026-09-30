@@ -1,6 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import React, { StrictMode } from 'react';
 
+let mockCanWrite = true;
+jest.mock('../contexts/knowledge-base-context', () => ({
+  useKnowledgeBaseContext: () => ({
+    knowledgeBase: { can_write: mockCanWrite },
+  }),
+}));
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
@@ -277,4 +284,21 @@ describe('ParsingStatusCell', () => {
     expect(mockShowReparseDialog).toHaveBeenCalledTimes(1);
     expect(mockRunDocumentByIds).not.toHaveBeenCalled();
   });
+});
+
+test('shared readers can see parsing status but cannot start or stop parsing', () => {
+  mockCanWrite = false;
+  const { rerender } = renderCell();
+  expect(screen.getByTestId('document-parse-toggle')).toBeDisabled();
+  fireEvent.click(screen.getByTestId('document-parse-toggle'));
+  expect(mockRunDocumentByIds).not.toHaveBeenCalled();
+  rerender(
+    React.createElement(ParsingStatusCell, {
+      record: { ...baseRecord, run: RunningStatus.RUNNING } as any,
+      showLog: jest.fn(),
+      showChangeParserModal: jest.fn(),
+    }),
+  );
+  expect(screen.getByTestId('document-parse-toggle')).toBeDisabled();
+  mockCanWrite = true;
 });

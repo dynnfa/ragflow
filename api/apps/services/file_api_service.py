@@ -31,6 +31,14 @@ from common.misc_utils import get_uuid, thread_pool_exec
 logger = logging.getLogger(__name__)
 
 
+def _file_writable(file, user_id):
+    if file.created_by != user_id:
+        return False
+    if file.type == FileType.FOLDER.value:
+        return all(_file_writable(child, user_id) for child in FileService.list_all_files_by_parent_id(file.id))
+    return all(DocumentService.writable(link.document_id, user_id) for link in File2DocumentService.get_by_file_id(file.id))
+
+
 async def upload_file(tenant_id: str, pf_id: str, file_objs: list):
     """
     Upload files to a folder.
@@ -229,7 +237,7 @@ def get_all_parent_folders(file_id: str, user_id: str | None = None):
 
 async def delete_files(uid: str, file_ids: list, auth_header: str = ""):
     """
-    Delete files/folders with team permission check and recursive deletion.
+    Delete owned files/folders and their writable linked documents.
 
     :param uid: user ID
     :param file_ids: list of file IDs to delete
@@ -445,7 +453,7 @@ async def delete_files(uid: str, file_ids: list, auth_header: str = ""):
             if not file.tenant_id:
                 errors.append(f"Tenant not found for file {file_id}")
                 continue
-            if not check_file_team_permission(file, uid):
+            if file.created_by != uid:
                 errors.append(f"No authorization for file {file_id}")
                 continue
 
@@ -453,6 +461,10 @@ async def delete_files(uid: str, file_ids: list, auth_header: str = ""):
                 continue
 
             if file.source_type == "skill_space":
+                continue
+
+            if not _file_writable(file, uid):
+                errors.append(f"No authorization for linked documents in file {file_id}")
                 continue
 
             if file.type == FileType.FOLDER.value:
@@ -493,7 +505,7 @@ async def move_files(uid: str, src_file_ids: list, dest_file_id: str | None = No
             return False, "File or folder not found!"
         if not file.tenant_id:
             return False, "Tenant not found!"
-        if not check_file_team_permission(file, uid):
+        if not _file_writable(file, uid):
             return False, "no authorization"
 
     dest_folder = None
@@ -501,6 +513,8 @@ async def move_files(uid: str, src_file_ids: list, dest_file_id: str | None = No
         ok, dest_folder = FileService.get_by_id(dest_file_id)
         if not ok or not dest_folder:
             return False, "Parent folder not found!"
+        if dest_folder.created_by != uid:
+            return False, "no authorization"
 
     if new_name:
         file = files_dict[src_file_ids[0]]

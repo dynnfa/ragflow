@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { formSchema } from './form-schema';
+import { ParseType } from '@/constants/knowledge';
 
 // The value that does not need to be displayed in the analysis method Select
 const HiddenFields = ['email', 'picture', 'audio', 'resume'];
@@ -40,13 +41,18 @@ export const useFetchKnowledgeConfigurationOnMount = (
       ...pick({ ...knowledgeDetails, parser_config: parser_config }, [
         'description',
         'name',
-        'permission',
+        'shared_team_ids',
         'language',
         'parser_config',
         'connectors',
         'pagerank',
         'avatar',
       ]),
+      permission: knowledgeDetails.permission === 'team' ? 'team' : 'me',
+      parse_type: knowledgeDetails.pipeline_id
+        ? ParseType.Pipeline
+        : ParseType.BuiltIn,
+      shared_team_ids: knowledgeDetails.shared_team_ids ?? [],
       embedding_model: knowledgeDetails.embedding_model,
       chunk_method: knowledgeDetails.chunk_method,
     } as z.infer<typeof formSchema>;

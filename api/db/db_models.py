@@ -1088,6 +1088,7 @@ def init_database_tables(alter_fields=[]):
         logging.error(f"create tables failed: {create_failed_list}")
         raise Exception(f"create tables failed: {create_failed_list}")
     migrate_db()
+    migrate_knowledgebase_team_sharing()
 
 
 def fill_db_model_object(model_object, human_model_dict):
@@ -1319,6 +1320,17 @@ class Knowledgebase(DataBaseModel):
 
     class Meta:
         db_table = "knowledgebase"
+
+
+class KnowledgebaseTeam(DataBaseModel):
+    """Explicit dataset read grants, owned by the Python backend."""
+
+    kb_id = CharField(max_length=32, null=False)
+    team_id = CharField(max_length=32, null=False, index=True)
+
+    class Meta:
+        db_table = "knowledgebase_team"
+        primary_key = CompositeKey("kb_id", "team_id")
 
 
 class Document(DataBaseModel):
@@ -2571,3 +2583,14 @@ def migrate_model_type_names():
                     new_name,
                     ex,
                 )
+
+
+def migrate_knowledgebase_team_sharing():
+    """Convert existing team visibility once, preserving its audience."""
+    marker = "knowledgebase_team_sharing"
+    with DB.atomic():
+        if SystemSettings.select().where(SystemSettings.name == marker).exists():
+            return
+        for kb in Knowledgebase.select(Knowledgebase.id, Knowledgebase.tenant_id).where(Knowledgebase.permission == "team"):
+            KnowledgebaseTeam.get_or_create(kb_id=kb.id, team_id=kb.tenant_id)
+        SystemSettings.create(name=marker, source="migration", data_type="string", value="done")

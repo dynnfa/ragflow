@@ -44,7 +44,10 @@ export function DatasetDropdown({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={handleShowDatasetRenameModal}>
+        <DropdownMenuItem
+          disabled={dataset.can_write === false}
+          onClick={handleShowDatasetRenameModal}
+        >
           {t('common.rename')} <PenLine />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -61,6 +64,7 @@ export function DatasetDropdown({
           }}
         >
           <DropdownMenuItem
+            disabled={dataset.can_write === false}
             className="text-state-error"
             onSelect={(e) => {
               e.preventDefault();

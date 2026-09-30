@@ -19,7 +19,8 @@ export const formSchema = z
       .optional(),
     // avatar: z.instanceof(File),
     avatar: z.any().nullish(),
-    permission: z.string().optional(),
+    permission: z.enum(['me', 'team']).optional(),
+    shared_team_ids: z.array(z.string()).default([]),
     language: z.string().optional(),
     chunk_method: z.string(),
     pipeline_id: z.string().optional(),
@@ -85,6 +86,13 @@ export const formSchema = z
     // icon: z.array(z.instanceof(File)),
   })
   .superRefine((data, ctx) => {
+    if (data.permission === 'team' && data.shared_team_ids.length === 0) {
+      ctx.addIssue({
+        path: ['shared_team_ids'],
+        message: t('knowledgeConfiguration.selectTeamsRequired'),
+        code: 'custom',
+      });
+    }
     if (data.parse_type === ParseType.Pipeline && !data.pipeline_id) {
       ctx.addIssue({
         path: ['pipeline_id'],

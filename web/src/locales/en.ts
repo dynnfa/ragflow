@@ -665,6 +665,13 @@ Example: A 1 KB message with 1024-dim embedding uses ~9 KB. The 5 MB default lim
       reRankModelWaring: 'Re-rank model is very time consuming.',
     },
     knowledgeConfiguration: {
+      noTeams: 'No teams available',
+      onlyMe: 'Only me',
+      selectedTeams: 'Selected teams',
+      sharedTeams: 'Share with teams',
+      teamSharingTip:
+        'Selected team owners and joined members can view and retrieve content. Only the creator can edit this dataset.',
+      selectTeamsRequired: 'Select at least one team',
       randomSeedTip:
         'Seed is the starting point for a pseudo-random algorithm that ensures reproducibility of the same output across different runs.',
       datasetDescription: 'Describe your dataset',

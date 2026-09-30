@@ -1,3 +1,4 @@
+import { useKnowledgeBaseContext } from '../contexts/knowledge-base-context';
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '@/components/ui/input';
@@ -39,6 +40,8 @@ function NavNodeDeleteAction({
 }: NavNodeDeleteActionProps) {
   const { t } = useTranslation();
   const isGo = useIsGoBackend();
+  const { knowledgeBase } = useKnowledgeBaseContext();
+  const canWrite = knowledgeBase?.can_write !== false;
 
   const handleTriggerClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -54,7 +57,7 @@ function NavNodeDeleteAction({
   }, [name, parentName, onDelete]);
 
   // The Go backend does not support deleting nav nodes; don't mount the action.
-  if (isGo) return null;
+  if (isGo || !canWrite) return null;
 
   return (
     <ConfirmDeleteDialog
@@ -124,6 +127,8 @@ export function NavTreeLeftPanel({
 }: NavTreeLeftPanelProps) {
   const { t } = useTranslation();
   const isGo = useIsGoBackend();
+  const { knowledgeBase } = useKnowledgeBaseContext();
+  const canWrite = knowledgeBase?.can_write !== false;
 
   const { status: compileStatus } = useGenerateStatus(traceData);
   const [logSheetOpen, setLogSheetOpen] = useState(false);
@@ -189,7 +194,7 @@ export function NavTreeLeftPanel({
         <span className="text-sm font-medium text-text-primary">
           {t('knowledgeCompilation.navTitle')} ({navList?.total ?? 0})
         </span>
-        {!isGo && treeData.length > 0 && (
+        {!isGo && canWrite && treeData.length > 0 && (
           <ConfirmDeleteDialog
             title={t('knowledgeCompilation.navDeleteAllTitle')}
             content={{

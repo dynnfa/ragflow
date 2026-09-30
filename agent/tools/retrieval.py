@@ -134,15 +134,15 @@ class Retrieval(ToolBase, ABC):
             # if kb_nm is a list
             kb_nm_list = kb_nm if isinstance(kb_nm, list) else [kb_nm]
             for nm_or_id in kb_nm_list:
-                e, kb = KnowledgebaseService.get_by_name(nm_or_id, self._canvas._tenant_id)
+                matches = KnowledgebaseService.get_kb_by_name(nm_or_id, self._canvas.get_tenant_id())
+                e, kb = KnowledgebaseService.get_by_id(matches[0]["id"] if matches else nm_or_id)
                 if not e:
-                    e, kb = KnowledgebaseService.get_by_id(nm_or_id)
-                    if not e:
-                        raise Exception(f"Dataset({nm_or_id}) does not exist.")
+                    raise Exception(f"Dataset({nm_or_id}) does not exist.")
                 kb_ids.append(kb.id)
 
         filtered_kb_ids: list[str] = list(set([kb_id for kb_id in kb_ids if kb_id]))
 
+        KnowledgebaseService.require_access(filtered_kb_ids, self._canvas.get_tenant_id())
         kbs = KnowledgebaseService.get_by_ids(filtered_kb_ids)
         if not kbs:
             raise Exception("No dataset is selected.")
@@ -151,7 +151,7 @@ class Retrieval(ToolBase, ABC):
 
         embd_mdl = None
         if embd_id:
-            tenant_id = self._canvas.get_tenant_id()
+            tenant_id = kbs[0].tenant_id
             embd_model_config = resolve_model_config(tenant_id, LLMType.EMBEDDING, embd_id)
             embd_mdl = LLMBundle(tenant_id, embd_model_config)
 

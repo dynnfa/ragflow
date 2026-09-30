@@ -1,3 +1,4 @@
+import { useKnowledgeBaseContext } from '../contexts/knowledge-base-context';
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,6 +34,8 @@ export function DatasetActionCell({
   setRowSelection,
 }: { record: IDocumentInfo } & UseRenameDocumentShowType &
   Pick<UseRowSelectionType, 'setRowSelection'>) {
+  const { knowledgeBase } = useKnowledgeBaseContext();
+  const canWrite = knowledgeBase?.can_write !== false;
   const { id, type } = record;
   const isRunning = isDocumentProcessing(record);
   const isVirtualDocument = type === DocumentType.Virtual;
@@ -76,7 +79,7 @@ export function DatasetActionCell({
       <Button
         size="icon-xs"
         variant="ghost"
-        disabled={isRunning}
+        disabled={isRunning || !canWrite}
         onClick={handleRename}
       >
         <PenLine className="size-[1em]" />
@@ -123,7 +126,7 @@ export function DatasetActionCell({
           data-testid="document-delete"
           size="icon-xs"
           variant="ghost"
-          disabled={isRunning}
+          disabled={isRunning || !canWrite}
         >
           <Trash2 className="size-[1em]" />
         </Button>

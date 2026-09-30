@@ -1,3 +1,4 @@
+import { useKnowledgeBaseContext } from '../contexts/knowledge-base-context';
 import { IconFontFill } from '@/components/icon-font';
 import { Button } from '@/components/ui/button';
 import {
@@ -121,6 +122,8 @@ export function ParsingStatusCell({
   record: IDocumentInfo;
   showLog: (record: IDocumentInfo) => void;
 } & UseChangeDocumentParserShowType) {
+  const { knowledgeBase } = useKnowledgeBaseContext();
+  const canWrite = knowledgeBase?.can_write !== false;
   const { t } = useTranslation();
   const { progress, chunk_count, id } = record;
   // Go reports state via ingestion_status (run is gone); Python keeps run.
@@ -233,7 +236,7 @@ export function ParsingStatusCell({
                 <Button
                   variant="ghost"
                   size="icon-xs"
-                  disabled={isStopping}
+                  disabled={isStopping || !canWrite}
                   onClick={handleParseClick}
                   data-testid="document-parse-toggle"
                 >
@@ -267,6 +270,7 @@ export function ParsingStatusCell({
               <Button
                 variant="ghost"
                 size="icon-xs"
+                disabled={!canWrite}
                 onClick={handleParseClick}
                 data-testid="document-parse-toggle"
               >

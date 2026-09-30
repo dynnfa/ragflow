@@ -1,3 +1,4 @@
+import { useKnowledgeBaseContext } from '../contexts/knowledge-base-context';
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog';
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '@/components/ui/input';
@@ -43,6 +44,8 @@ function SkillDeleteAction({
 }: SkillDeleteActionProps) {
   const { t } = useTranslation();
   const isGo = useIsGoBackend();
+  const { knowledgeBase } = useKnowledgeBaseContext();
+  const canWrite = knowledgeBase?.can_write !== false;
 
   const handleTriggerClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -58,7 +61,7 @@ function SkillDeleteAction({
   }, [skillKwd, onDelete]);
 
   // The Go backend does not support deleting skill pages; don't mount the action.
-  if (isGo) return null;
+  if (isGo || !canWrite) return null;
 
   return (
     <ConfirmDeleteDialog
@@ -88,6 +91,8 @@ export function SkillsLeftPanel({
 }: SkillsLeftPanelProps) {
   const { t } = useTranslation();
   const isGo = useIsGoBackend();
+  const { knowledgeBase } = useKnowledgeBaseContext();
+  const canWrite = knowledgeBase?.can_write !== false;
   const { data: tree, loading } = useFetchDatasetSkillTree();
   const { deleteSkillTree, loading: deleteTreeLoading } =
     useDeleteDatasetSkillTree();
@@ -159,7 +164,7 @@ export function SkillsLeftPanel({
         <span className="text-sm font-medium text-text-primary">
           {t('knowledgeCompilation.skillFolders')} ({totalCount})
         </span>
-        {!isGo && (
+        {!isGo && canWrite && (
           <ConfirmDeleteDialog
             title={t('knowledgeCompilation.skillDeleteAllTitle')}
             content={{

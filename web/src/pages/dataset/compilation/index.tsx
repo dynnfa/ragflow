@@ -9,6 +9,7 @@ import { useFetchKnowledgeBaseConfiguration } from '@/hooks/use-knowledge-reques
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
+import { KnowledgeBaseProvider } from '../contexts/knowledge-base-context';
 
 import {
   StructureKinds,
@@ -25,7 +26,7 @@ export default function Compilation() {
   const { t } = useTranslation();
   const { id } = useParams();
   const { navigateToDataFile } = useNavigatePage();
-  const { data: knowledgeBase } = useFetchKnowledgeBaseConfiguration();
+  const { data: knowledgeBase, loading } = useFetchKnowledgeBaseConfiguration();
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.LlmWiki);
 
   const viewOptions = useMemo<SelectWithSearchFlagOptionType[]>(() => {
@@ -42,38 +43,40 @@ export default function Compilation() {
   const structureKind = StructureKinds.find((kind) => kind === viewMode);
 
   return (
-    <section className="flex flex-col p-4 gap-4 h-full">
-      <header className="space-y-5">
-        <BackButton onClick={navigateToDataFile(id!)}>
-          {t('common.back')}
-        </BackButton>
+    <KnowledgeBaseProvider knowledgeBase={knowledgeBase} loading={loading}>
+      <section className="flex flex-col p-4 gap-4 h-full">
+        <header className="space-y-5">
+          <BackButton onClick={navigateToDataFile(id!)}>
+            {t('common.back')}
+          </BackButton>
 
-        <section className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <RAGFlowAvatar
-              avatar={knowledgeBase?.avatar}
-              name={knowledgeBase?.name}
-              className="size-10 rounded-lg"
+          <section className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <RAGFlowAvatar
+                avatar={knowledgeBase?.avatar}
+                name={knowledgeBase?.name}
+                className="size-10 rounded-lg"
+              />
+              <h2 className="text-xl font-medium text-text-primary">
+                {knowledgeBase?.name}
+                {t('knowledgeCompilation.compilationTitleSuffix')}
+              </h2>
+            </div>
+
+            <SelectWithSearch
+              options={viewOptions}
+              value={viewMode}
+              onChange={handleViewModeChange}
+              triggerClassName="w-96"
             />
-            <h2 className="text-xl font-medium text-text-primary">
-              {knowledgeBase?.name}
-              {t('knowledgeCompilation.compilationTitleSuffix')}
-            </h2>
-          </div>
+          </section>
+        </header>
 
-          <SelectWithSearch
-            options={viewOptions}
-            value={viewMode}
-            onChange={handleViewModeChange}
-            triggerClassName="w-96"
-          />
-        </section>
-      </header>
-
-      {viewMode === ViewMode.LlmWiki && <LlmWikiView />}
-      {viewMode === ViewMode.Skills && <SkillsView />}
-      {viewMode === ViewMode.Tree && <NavTreeView />}
-      {structureKind && <DatasetStructureView kind={structureKind} />}
-    </section>
+        {viewMode === ViewMode.LlmWiki && <LlmWikiView />}
+        {viewMode === ViewMode.Skills && <SkillsView />}
+        {viewMode === ViewMode.Tree && <NavTreeView />}
+        {structureKind && <DatasetStructureView kind={structureKind} />}
+      </section>
+    </KnowledgeBaseProvider>
   );
 }

@@ -73,6 +73,7 @@ def _load_nav_module(monkeypatch, *, accessible=True, index_pack=("idx-1", None)
     kb = SimpleNamespace(tenant_id="tenant-1", id="kb-1")
     knowledgebase_service = SimpleNamespace(
         accessible=MagicMock(return_value=accessible),
+        writable=MagicMock(return_value=accessible),
         get_by_id=MagicMock(return_value=(True, kb)),
     )
 

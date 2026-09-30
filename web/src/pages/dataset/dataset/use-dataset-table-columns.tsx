@@ -1,3 +1,4 @@
+import { useKnowledgeBaseContext } from '../contexts/knowledge-base-context';
 import { FileIcon } from '@/components/icon-font';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -39,6 +40,8 @@ export function useDatasetTableColumns({
   showLog,
   setRowSelection,
 }: UseDatasetTableColumnsType) {
+  const { knowledgeBase } = useKnowledgeBaseContext();
+  const canWrite = knowledgeBase?.can_write !== false;
   const { t } = useTranslation('translation', {
     keyPrefix: 'knowledgeDetails',
   });
@@ -53,6 +56,7 @@ export function useDatasetTableColumns({
         id: 'select',
         header: ({ table }) => (
           <Checkbox
+            disabled={!canWrite}
             checked={
               table.getIsAllPageRowsSelected() ||
               (table.getIsSomePageRowsSelected() && 'indeterminate')
@@ -65,6 +69,7 @@ export function useDatasetTableColumns({
         ),
         cell: ({ row }) => (
           <Checkbox
+            disabled={!canWrite}
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}
             aria-label="Select row"
@@ -152,6 +157,7 @@ export function useDatasetTableColumns({
           const id = row.original.id;
           return (
             <Switch
+              disabled={!canWrite}
               checked={row.getValue('status') === '1'}
               onCheckedChange={(e) => {
                 setDocumentStatus({
@@ -179,6 +185,7 @@ export function useDatasetTableColumns({
           return (
             <Button
               variant="static"
+              disabled={!canWrite}
               size="auto"
               onClick={() => {
                 showManageMetadataModal({
@@ -214,6 +221,7 @@ export function useDatasetTableColumns({
         accessorKey: 'run',
         header: t('Parse'),
         cell: ({ row }) => {
+          if (!canWrite) return null;
           return (
             <ParseDropdownButton
               record={row.original}
@@ -254,6 +262,7 @@ export function useDatasetTableColumns({
     ],
     [
       t,
+      canWrite,
       navigateToChunkParsedResult,
       setDocumentStatus,
       datasetId,

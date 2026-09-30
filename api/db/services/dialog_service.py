@@ -600,6 +600,7 @@ def _empty_response_applies(knowledges: list, text_attachments_content: str, ima
 
 async def async_chat(dialog, messages, stream=True, **kwargs):
     logging.debug("Begin async_chat")
+    KnowledgebaseService.require_access(dialog.kb_ids, dialog.tenant_id)
     assert messages[-1]["role"] == "user", "The last content of this conversation is not from user."
     session_id = kwargs.get("session_id")
     use_web_search = _should_use_web_search(dialog.prompt_config, kwargs.get("internet"))
@@ -1713,6 +1714,7 @@ async def async_ask(question, kb_ids, tenant_id, chat_llm_name=None, search_conf
     doc_ids = search_config.get("doc_ids", [])
     rerank_mdl = None
     kb_ids = search_config.get("kb_ids", kb_ids)
+    KnowledgebaseService.require_access(kb_ids, tenant_id)
     chat_llm_name = search_config.get("chat_id", chat_llm_name)
     rerank_id = search_config.get("rerank_id", "")
     meta_data_filter = search_config.get("meta_data_filter")
@@ -1838,6 +1840,7 @@ async def async_ask(question, kb_ids, tenant_id, chat_llm_name=None, search_conf
 
 
 async def gen_mindmap(question, kb_ids, tenant_id, search_config={}):
+    KnowledgebaseService.require_access(kb_ids, tenant_id)
     meta_data_filter = search_config.get("meta_data_filter", {})
     doc_ids = search_config.get("doc_ids", [])
     rerank_id = search_config.get("rerank_id", "")
@@ -2023,6 +2026,7 @@ def dialog_model_vision_capable(dialog) -> bool:
 
 
 async def rag_agent(dialog, messages, stream=True, **kwargs):
+    KnowledgebaseService.require_access(dialog.kb_ids, dialog.tenant_id)
     prompt_config = dialog.prompt_config or {}
     assert messages[-1]["role"] == "user", "The last content of this conversation is not from user."
     reasoning = kwargs["reasoning"] if "reasoning" in kwargs else prompt_config.get("reasoning", 0)

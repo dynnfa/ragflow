@@ -20,7 +20,7 @@ from pathlib import Path
 
 from quart import request
 
-from api.common.check_team_permission import check_file_team_permission, check_kb_team_permission
+from api.common.check_team_permission import check_file_team_permission
 from api.db.services import duplicate_name
 from api.db.services.file2document_service import File2DocumentService
 from api.db.services.file_service import FileService
@@ -36,31 +36,43 @@ from api.db.services.document_service import DocumentService
 logger = logging.getLogger(__name__)
 
 
+def _get_conversion_documents(file_ids, kb_ids, user_id, mode):
+    """Collect existing documents and authorize every unlink before any mutation."""
+    kb_ids = set(kb_ids)
+    documents = {}
+    for file_id in dict.fromkeys(file_ids):
+        documents[file_id] = []
+        for link in File2DocumentService.get_by_file_id(file_id):
+            e, doc = DocumentService.get_by_id(link.document_id)
+            if not e or not doc:
+                continue
+            if mode == "replace" and doc.kb_id not in kb_ids and not KnowledgebaseService.writable(doc.kb_id, user_id):
+                raise PermissionError("no authorization")
+            documents[file_id].append(doc)
+    return documents
+
+
 def _convert_files(file_ids, kb_ids, user_id, mode):
     """Synchronous worker: add missing links or replace existing links."""
     replace_existing = mode == "replace"
     kb_ids = set(kb_ids)
-    for id in file_ids:
+    documents = _get_conversion_documents(file_ids, kb_ids, user_id, mode)
+    for id in documents:
         e, file = FileService.get_by_id(id)
         if not e:
             continue
 
-        existing_kb_ids = set()
-        existing_links = File2DocumentService.get_by_file_id(id)
-        for inform in existing_links:
-            e, doc = DocumentService.get_by_id(inform.document_id)
-            if e and doc:
-                existing_kb_ids.add(doc.kb_id)
-
-                # Delete existing link to KB if it is replaced
-                if replace_existing and doc.kb_id not in kb_ids:
-                    logger.info("Unlink file_id=%s kb_id=%s", id, doc.kb_id)
-                    tenant_id = DocumentService.get_tenant_id(doc.id)
-                    if not tenant_id:
-                        raise RuntimeError("Tenant not found!")
-                    if not DocumentService.remove_document(doc, tenant_id):
-                        raise RuntimeError("Database error (Document removal)!")
-                    File2DocumentService.delete_by_document_id(doc.id)
+        existing_kb_ids = {doc.kb_id for doc in documents[id]}
+        for doc in documents[id]:
+            # Delete existing link to KB if it is replaced
+            if replace_existing and doc.kb_id not in kb_ids:
+                logger.info("Unlink file_id=%s kb_id=%s", id, doc.kb_id)
+                tenant_id = DocumentService.get_tenant_id(doc.id)
+                if not tenant_id:
+                    raise RuntimeError("Tenant not found!")
+                if not DocumentService.remove_document(doc, tenant_id):
+                    raise RuntimeError("Database error (Document removal)!")
+                File2DocumentService.delete_by_document_id(doc.id)
 
         for kb_id in kb_ids:
             # Skip if the file is already linked to this KB
@@ -169,7 +181,7 @@ async def convert():
                 return get_data_error_result(message="no authorization")
 
         for kb_id, kb in kb_map.items():
-            if not check_kb_team_permission(kb, user_id):
+            if not KnowledgebaseService.writable(kb.id, user_id):
                 logger.warning(
                     "user_id=%s resource_type=dataset resource_id=%s action=authorize_dataset result=denied file_ids=%s kb_ids=%s",
                     user_id,
@@ -178,6 +190,9 @@ async def convert():
                     kb_ids,
                 )
                 return get_data_error_result(message="no authorization")
+
+        if mode == "replace":
+            _get_conversion_documents(all_file_ids, kb_ids, user_id, mode)
 
         # Run the blocking DB work in a thread so the event loop is not blocked.
         # For large folders this prevents 504 Gateway Timeout by returning as
@@ -192,5 +207,7 @@ async def convert():
             kb_ids,
         )
         return get_json_result(data=True)
+    except PermissionError as e:
+        return get_data_error_result(message=str(e))
     except Exception as e:
         return server_error_response(e)

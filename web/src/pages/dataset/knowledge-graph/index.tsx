@@ -7,11 +7,13 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import ForceGraph from './force-graph';
 import { useDeleteKnowledgeGraph } from './use-delete-graph';
+import { useKnowledgeBaseContext } from '../contexts/knowledge-base-context';
 
 const KnowledgeGraph: React.FC = () => {
   const { data } = useFetchKnowledgeGraph();
   const { t } = useTranslation();
   const { handleDeleteKnowledgeGraph } = useDeleteKnowledgeGraph();
+  const { knowledgeBase } = useKnowledgeBaseContext();
 
   return (
     <Card
@@ -22,6 +24,7 @@ const KnowledgeGraph: React.FC = () => {
         <Button
           variant="outline"
           size="sm"
+          disabled={knowledgeBase?.can_write === false}
           className="absolute right-5 top-5 z-50"
         >
           <LucideTrash2 />

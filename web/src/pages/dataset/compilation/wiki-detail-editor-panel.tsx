@@ -1,3 +1,4 @@
+import { useKnowledgeBaseContext } from '../contexts/knowledge-base-context';
 import { useTranslation } from 'react-i18next';
 
 import MarkdownEditor from '@/components/markdown-editor';
@@ -36,6 +37,7 @@ export function WikiDetailEditorPanel({
   onWikiLinkClick,
 }: WikiDetailEditorPanelProps) {
   const { t } = useTranslation();
+  const { knowledgeBase } = useKnowledgeBaseContext();
 
   return (
     <div className="flex-1 min-h-0 flex flex-col border-t border-border-button">
@@ -48,6 +50,7 @@ export function WikiDetailEditorPanel({
               </div>
             ) : (
               <MarkdownEditor
+                readOnly={knowledgeBase?.can_write === false}
                 content={editedContent}
                 onChange={onContentChange}
                 onWikiLinkClick={onWikiLinkClick}
